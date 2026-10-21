@@ -1,0 +1,6 @@
+{
+  "name": "CoblaBot - Descobreix la Cobla",
+  "description": "Aplicació educativa interactiva per a Cicle Superior de Primària per descobrir la cobla catalana, els seus instruments, sons, escenari i jocs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
