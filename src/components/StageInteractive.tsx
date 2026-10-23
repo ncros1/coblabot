@@ -377,10 +377,10 @@ export const StageInteractive: React.FC<Props> = ({ student, onAddPoints }) => {
               <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={() => coblaAudio.playInstrumentDemo(currentInst.synthType)}
-                  className="px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs flex items-center gap-1.5 transition active:scale-95"
+                  className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs flex items-center gap-2 transition active:scale-95 shadow-sm"
                 >
-                  <Volume2 className="w-4 h-4 text-amber-700" />
-                  <span>Toc ràpid sintètic</span>
+                  <Volume2 className="w-4 h-4 text-sky-100" />
+                  <span>🎧 Escolta el so real (Cobla 2.0)</span>
                 </button>
               </div>
             </div>

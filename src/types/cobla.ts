@@ -18,10 +18,29 @@ export interface InstrumentInfo {
   audioUrl: string; // URL per a l'element <audio controls src="...">
   freqBase: number; // Per al sintetitzador Web Audio
   synthType: 'flabiol' | 'tambori' | 'tible' | 'tenora' | 'trompeta' | 'trombo' | 'fiscorn' | 'contrabaix';
+  realAudioSampleUrl?: string; // Ruta al fitxer real MP3 Cobla 2.0 (Cobla Sant Jordi)
+  realAudioPreviewUrl?: string; // Ruta al fragment solo de 12s per a previsualització ràpida
+  pieceFeatured?: string; // Cançó didàctica que interpreta (ex: "Ton pare no té nas", "El gegant del Pi")
   youtubeId: string;
   youtubeTitle: string;
   youtubeUrl: string;
   youtubeEmbedUrl: string;
+}
+
+export interface PalauCoblaRecording {
+  id: string;
+  titol: string;
+  peçaOriginal: string;
+  subtitol: string;
+  autor?: string;
+  instrumentsDestacats: string;
+  familia?: InstrumentFamily | 'tots';
+  audioUrl: string;
+  previewUrl?: string;
+  durada: string;
+  descripcio: string;
+  icona: string;
+  cançóInfantilAssociada?: string;
 }
 
 export interface CoblaYouTubeTrack {
@@ -50,6 +69,8 @@ export interface StudentActivityLog {
   puzleEscenariCompletat: boolean;
   endevinallesEncertades: number;
   intrusRondesEncertades: number;
+  soMisteriosEncertats?: number;
+  mitesEncertats?: number;
   quizPuntuacio: number;
   quizCompletat: boolean;
   diplomaObtingut: boolean;
@@ -98,3 +119,23 @@ export interface QuizQuestion {
   respostaIndex: number;
   explicacio: string;
 }
+
+export interface MysterySoundQuestion {
+  id: number;
+  instrumentKey: string;
+  titolPista: string;
+  pistaText: string;
+  opcions: string[];
+  respostaCorrecta: string;
+  explicacio: string;
+}
+
+export interface MythQuestion {
+  id: number;
+  afirmacio: string;
+  esVeritat: boolean;
+  explicacio: string;
+  dossierRef: string;
+  icona: string;
+}
+

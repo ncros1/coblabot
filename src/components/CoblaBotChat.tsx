@@ -16,14 +16,14 @@ interface ChatMessage {
 }
 
 const QUICK_PROMPTS = [
+  'Qui va inventar la tenora: Toron o Pep Ventura? 👑',
   'Per què hi ha 11 músics i 12 instruments? 🥁',
-  'Quin és l’instrument rei de la cobla? 👑',
-  'De quina fusta estan fets el tible i la tenora? 🌳',
-  'Com es balla la sardana i quines parts té? 💃',
-  'Què és l’introit i qui el toca? 🪈',
-  'Qui va ser en Pep Ventura? 🌟',
-  'Quin és l’únic instrument de corda? 🎻',
-  'Per què els metalls van darrere i les fustes davant? 📍',
+  'Com es balla la sardana i les 10 tirades? 💃',
+  'Què és l’introit i el secret del dit petit? 🪈',
+  'Per què es va prohibir "La Santa Espina"? 🛡️',
+  'Qui era en Juli Garreta i com va compondre "Juny"? 🌾',
+  'Per on ballava el Gegant del Pi i per què? 🏰',
+  'Quin instrument fa servir sordina a "Roda moliner"? 🔇',
 ];
 
 export const CoblaBotChat: React.FC<Props> = ({ student, onAskQuestion }) => {
@@ -33,7 +33,7 @@ export const CoblaBotChat: React.FC<Props> = ({ student, onAskQuestion }) => {
     {
       id: 'welcome',
       sender: 'bot',
-      text: `Hola, ${nom}! 👋 Sóc en **CoblaBot**, el teu robot guia de la Cobla Catalana! 🤖🎶\n\nPots fer-me qualsevol pregunta sobre els instruments, els sons, com es balla la sardana o la història de la nostra música tradicional! Què t'agradaria descobrir avui?`,
+      text: `Hola, ${nom}! 👋 Sóc en **CoblaBot**, el teu robot guia de la Cobla Catalana! 🤖🎶\n\nResponc a les teves preguntes amb **informació 100% contrastada** extreta exclusivament de **Cobla 2.0** i de **Som Sardana**, amb explicacions molt senzilles i fàcils d'entendre per a tu!\n\nSi em preguntes alguna cosa que no surti a aquests dossiers oficials, t'avisaré que no en tinc la resposta. Què t'agradaria descobrir avui?`,
       timestamp: 'Ara mateix',
     },
   ]);
@@ -133,15 +133,20 @@ export const CoblaBotChat: React.FC<Props> = ({ student, onAskQuestion }) => {
             🤖
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black uppercase mb-1">
-              <Sparkles className="w-3 h-3 text-amber-600" />
-              Assistent Intel·ligent de la Cobla
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] font-black uppercase">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                extret de Cobla 2.0 i Som Sardana
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] sm:text-[11px] font-bold">
+                100% Contrastat per a Primària
+              </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
               Xat amb en CoblaBot
             </h2>
-            <p className="text-xs md:text-sm font-medium text-slate-500">
-              Pregunta qualsevol dubte sobre la música catalana i la cobla!
+            <p className="text-xs sm:text-sm font-medium text-slate-600">
+              Respostes clares i simplificades per a infants, basades exclusivament en els coneixements oficials de la cobla!
             </p>
           </div>
         </div>

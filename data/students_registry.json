@@ -1,0 +1,43 @@
+[
+  {
+    "id": "student_1792669657928_neus",
+    "nom": "NEus",
+    "avatar": "🤖",
+    "instrumentPreferit": "Tenora",
+    "punts": 115,
+    "estrelles": 3,
+    "activitat": {
+      "puzleEscenariCompletat": false,
+      "endevinallesEncertades": 0,
+      "intrusRondesEncertades": 0,
+      "quizPuntuacio": 0,
+      "quizCompletat": false,
+      "diplomaObtingut": false,
+      "preguntesXatFetes": 0,
+      "ultimaActivitat": "22/10/2026 14:09",
+      "accionsRecents": [
+        {
+          "data": "14:09",
+          "accio": "Ha resolt el mite: A la cobla catalana hi ha 11 m..."
+        },
+        {
+          "data": "14:09",
+          "accio": "Ha resolt el mite: Pep Ventura va inventar la Ten..."
+        },
+        {
+          "data": "14:09",
+          "accio": "Ha encertat el so misteriós: Flabiol i Tamborí"
+        },
+        {
+          "data": "13:47",
+          "accio": "Entrada inicial a la CoblaBot"
+        }
+      ],
+      "soMisteriosEncertats": 1,
+      "mitesEncertats": 1
+    },
+    "puntuacioQuizMax": 0,
+    "diplomaObtingut": false,
+    "dataRegistre": "22/10/2026"
+  }
+]

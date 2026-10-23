@@ -17,41 +17,18 @@ export const InstrumentsGallery: React.FC<Props> = () => {
     ? INSTRUMENTS_DATA
     : INSTRUMENTS_DATA.filter((inst) => inst.familia === selectedFamily);
 
-  const handlePlayDemo = (inst: InstrumentInfo) => {
-    setActivePlayingId(inst.id);
-    coblaAudio.playInstrumentDemo(inst.synthType);
-    setTimeout(() => {
-      setActivePlayingId((cur) => (cur === inst.id ? null : cur));
-    }, 2500);
-  };
-
-  const handlePlaySingleNote = (inst: InstrumentInfo, multiplier: number) => {
-    const base = inst.freqBase;
-    const freq = base * multiplier;
-    switch (inst.synthType) {
-      case 'flabiol':
-      case 'tambori':
-        coblaAudio.playFlabiolNote(freq, 0.4);
-        break;
-      case 'tible':
-        coblaAudio.playTibleNote(freq, 0.45);
-        break;
-      case 'tenora':
-        coblaAudio.playTenoraNote(freq, 0.5);
-        break;
-      case 'trompeta':
-        coblaAudio.playTrompetaNote(freq, 0.4);
-        break;
-      case 'trombo':
-        coblaAudio.playTromboNote(freq, 0.5);
-        break;
-      case 'fiscorn':
-        coblaAudio.playFiscornNote(freq, 0.5);
-        break;
-      case 'contrabaix':
-        coblaAudio.playContrabaixNote(freq, 0.6);
-        break;
+  const handlePlayRealAudio = (inst: InstrumentInfo) => {
+    if (activePlayingId === inst.id) {
+      coblaAudio.stopAll();
+      setActivePlayingId(null);
+      return;
     }
+    setActivePlayingId(inst.id);
+    coblaAudio.playRealSample(inst.realAudioPreviewUrl || inst.synthType, {
+      previewOnly: true,
+      title: `${inst.nom} - ${inst.pieceFeatured || 'Cobla 2.0'}`,
+      onEnd: () => setActivePlayingId((cur) => (cur === inst.id ? null : cur)),
+    });
   };
 
   return (
@@ -237,41 +214,32 @@ export const InstrumentsGallery: React.FC<Props> = () => {
                   />
                 </div>
 
-                {/* Interactive synthesized button and note tester */}
-                <div className="pt-2 flex flex-col gap-2">
+                {/* Real Recording Audio Button (Palau de la Música - Cobla 2.0) */}
+                <div className="pt-2">
                   <button
-                    onClick={() => handlePlayDemo(inst)}
-                    className={`w-full py-2 px-3 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 border ${
+                    onClick={() => handlePlayRealAudio(inst)}
+                    className={`w-full py-3 px-4 rounded-2xl font-black text-xs sm:text-sm transition flex items-center justify-between gap-2 shadow-sm border active:scale-98 min-h-[44px] ${
                       isPlaying
-                        ? 'bg-emerald-600 text-white border-emerald-700 animate-pulse'
-                        : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-200 active:scale-98'
+                        ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+                        : 'bg-gradient-to-r from-sky-50 to-amber-50 hover:from-sky-100 hover:to-amber-100 text-slate-800 border-sky-200'
                     }`}
                   >
-                    <Volume2 className="w-3.5 h-3.5 text-amber-700" />
-                    <span>{isPlaying ? 'Sonant la simulació...' : '⚡ Toc ràpid sintetitzat Web Audio'}</span>
+                    <span className="flex items-center gap-2">
+                      <Volume2 className={`w-4 h-4 ${isPlaying ? 'text-white animate-bounce' : 'text-sky-600'}`} />
+                      <span>{isPlaying ? '⏹️ Aturar enregistrament' : '🎧 Escolta el so real (Cobla 2.0)'}</span>
+                    </span>
+                    {inst.pieceFeatured && (
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg ${
+                          isPlaying
+                            ? 'bg-rose-600 text-rose-100'
+                            : 'bg-white text-slate-700 border border-slate-200 shadow-2xs'
+                        }`}
+                      >
+                        {inst.pieceFeatured}
+                      </span>
+                    )}
                   </button>
-
-                  {/* Mini interactive pitch buttons */}
-                  <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-slate-500 pt-1">
-                    <span className="text-slate-400">Toca notes:</span>
-                    <div className="flex items-center gap-1.5">
-                      {[
-                        { label: 'Greveta', mult: 0.8 },
-                        { label: 'Natural', mult: 1.0 },
-                        { label: 'Aguda', mult: 1.25 },
-                        { label: 'Molt aguda', mult: 1.5 },
-                      ].map((btn) => (
-                        <button
-                          key={btn.label}
-                          onClick={() => handlePlaySingleNote(inst, btn.mult)}
-                          className="px-2 py-1 bg-white hover:bg-amber-100 border border-slate-200 hover:border-amber-300 rounded-lg text-slate-700 active:scale-90 transition text-[10px]"
-                          title={`Toca una nota ${btn.label.toLowerCase()}`}
-                        >
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
 
               </div>

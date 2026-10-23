@@ -277,6 +277,12 @@ export const StudentRegistrationModal: React.FC<Props> = ({
               </select>
             </div>
 
+            {/* Permanent storage note */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 font-semibold">
+              <span className="text-base">💾</span>
+              <span>El teu progrés, punts i diplomes es guarden de forma permanent (no caduquen mai).</span>
+            </div>
+
             {/* Submit button */}
             <div className="pt-2 flex items-center gap-3">
               {!isInitial && onClose && (

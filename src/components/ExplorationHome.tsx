@@ -59,7 +59,7 @@ export const ExplorationHome: React.FC<Props> = ({
                 title="Clica per sentir el toc d'inici (l'Introit)!"
               >
                 <Volume2 className="w-4 h-4 text-yellow-300 animate-pulse" />
-                <span>Toca l’Introit! 🪈🥁</span>
+                <span>Toca l’Introit Real! (Cobla 2.0) 🪈🥁</span>
               </button>
 
               {student?.diplomaObtingut && onOpenDiploma && (
@@ -247,31 +247,36 @@ export const ExplorationHome: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Card 5: Secrets dels Dossiers Educatius */}
+          {/* Card 5: Peces Musicals & Secrets de Cobla 2.0 i Som Sardana */}
           <div
             onClick={() => setActiveTab('curiosities')}
             className="md:col-span-2 group cursor-pointer bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 rounded-3xl p-6 border-3 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 relative overflow-hidden"
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-amber-400 text-3xl flex items-center justify-center border border-amber-500 shadow-sm group-hover:scale-110 transition">
-                  📚
+                <div className="w-14 h-14 rounded-2xl bg-amber-400 text-3xl flex items-center justify-center border border-amber-500 shadow-sm group-hover:scale-110 transition shrink-0">
+                  🎼
                 </div>
                 <div>
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-200 text-amber-900 border border-amber-300">
-                    Contingut dels Dossiers
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-200 text-amber-900 border border-amber-300">
+                      extret de Cobla 2.0 i Som Sardana
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
+                      Peces Musicals Reals
+                    </span>
+                  </div>
                   <h3 className="text-xl font-black text-slate-800 mt-1 group-hover:text-amber-800 transition">
-                    5. Secrets dels Dossiers: Cobla 2.0 i La Sardana a l'Escola
+                    5. Peces Musicals & Secrets: Cobla 2.0 i Som Sardana
                   </h3>
                   <p className="text-sm text-slate-600 font-medium mt-1 leading-relaxed max-w-2xl">
-                    Descobreix l'invent de la Tenora per Andreu Toron el 1849, la curiositat del dit petit del flabiol, com es ballen les 10 tirades, el misteri del Gegant del Pi i les sardanes revesses!
+                    Escolta i descobreix les peces concretes: <em>La Santa Espina</em> (Morera), <em>Juny</em> (Garreta), <em>Per tu ploro</em> (Pep Ventura), <em>El Gegant del Pi</em>, <em>Roda moliner</em>, i la veritat històrica d’Andreu Toron i Pep Ventura!
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center text-amber-700 font-black text-sm gap-1 group-hover:gap-2 transition-all whitespace-nowrap">
-                <span>Obre el dossier</span>
+              <div className="flex items-center text-amber-700 font-black text-sm gap-1 group-hover:gap-2 transition-all whitespace-nowrap shrink-0">
+                <span>Explora les peces</span>
                 <span>→</span>
               </div>
             </div>
@@ -287,10 +292,10 @@ export const ExplorationHome: React.FC<Props> = ({
         </div>
         <div className="space-y-2 text-center md:text-left flex-1">
           <h4 className="text-lg font-black text-amber-950">
-            Sabies que...? El secret de Pep Ventura!
+            Sabies que...? La veritat de Pep Ventura i la Cobla!
           </h4>
           <p className="text-sm font-medium text-amber-900 leading-relaxed">
-            Abans del segle XIX, les cobles tenien només 3 o 4 músics (anomenades cobles de tres quartans: flabiol, sac de gemecs i tarota). Va ser el músic empordanès <strong>Pep Ventura</strong> qui va allargar la tenora, li va afegir la campana cònica de metall i va configurar la cobla d'11 músics tal com la coneixem avui dia!
+            Abans del segle XIX, les cobles tenien només 3 o 4 músics (les cobles de tres quartans: flabiol, sac de gemecs i tarota). Va ser el músic empordanès <strong>Pep Ventura</strong> qui va revolucionar la formació creant la cobla moderna d'<strong>11 músics i 12 instruments</strong>, va fer de la tenora (inventada per Andreu Toron el 1849) la reina solista indiscutible i va crear la <strong>sardana llarga</strong>!
           </p>
         </div>
         <button

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StudentProfile } from '../types/cobla';
 import {
   Lock,
@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Clock,
   Download,
+  Upload,
   Printer,
   Trash2,
   X,
@@ -15,7 +16,7 @@ import {
   KeyRound,
   FileSpreadsheet,
   AlertCircle,
-  HelpCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface Props {
@@ -44,6 +45,8 @@ export const TeacherPanelModal: React.FC<Props> = ({
   const [newPin, setNewPin] = useState<string>('');
   const [pinChangeMsg, setPinChangeMsg] = useState<string>('');
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -86,6 +89,8 @@ export const TeacherPanelModal: React.FC<Props> = ({
       'Puzle Escenari',
       'Endevinalles Encertades',
       'Rondes Intrus',
+      'So Misterios Encertats',
+      'Mites Resolts',
       'Nota Gran Concurs (/10)',
       'Diploma Obtingut',
       'Preguntes CoblaBot',
@@ -100,6 +105,8 @@ export const TeacherPanelModal: React.FC<Props> = ({
       s.activitat?.puzleEscenariCompletat ? 'Completat' : 'Pendent',
       s.activitat?.endevinallesEncertades || 0,
       s.activitat?.intrusRondesEncertades || 0,
+      s.activitat?.soMisteriosEncertats || 0,
+      s.activitat?.mitesEncertats || 0,
       s.activitat?.quizPuntuacio || s.puntuacioQuizMax || 0,
       s.diplomaObtingut ? 'SI' : 'NO',
       s.activitat?.preguntesXatFetes || 0,
@@ -120,6 +127,50 @@ export const TeacherPanelModal: React.FC<Props> = ({
     document.body.removeChild(link);
   };
 
+  // JSON Permanent Backup Export
+  const handleExportJSON = () => {
+    if (students.length === 0) {
+      alert('No hi ha alumnes registrats per exportar.');
+      return;
+    }
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(students, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute('href', dataStr);
+    link.setAttribute('download', `copia_permanent_coblabot_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  // JSON Backup Import
+  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const imported = JSON.parse(content);
+        if (Array.isArray(imported)) {
+          localStorage.setItem('coblabot_students_list', JSON.stringify(imported));
+          await fetch('/api/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students: imported }),
+          });
+          alert('Còpia de seguretat restaurada amb èxit! Es recarregarà la pàgina.');
+          window.location.reload();
+        } else {
+          alert('El fitxer no conté un format vàlid d’alumnes.');
+        }
+      } catch (err) {
+        alert('Error en llegir el fitxer JSON.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const filteredStudents = students.filter((s) =>
     s.nom.toLowerCase().includes(searchQuery.toLowerCase().trim())
   );
@@ -132,7 +183,7 @@ export const TeacherPanelModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in print:p-0 print:bg-white">
-      <div className="relative w-full max-w-4xl max-h-[92vh] bg-white rounded-3xl shadow-2xl border-4 border-slate-700 overflow-hidden flex flex-col print:border-none print:shadow-none print:max-h-none print:w-full">
+      <div className="relative w-full max-w-5xl max-h-[92vh] bg-white rounded-3xl shadow-2xl border-4 border-slate-700 overflow-hidden flex flex-col print:border-none print:shadow-none print:max-h-none print:w-full">
         
         {/* Header */}
         <div className="bg-slate-900 text-white px-6 py-5 flex items-center justify-between border-b border-slate-800 print:bg-transparent print:text-slate-900 print:border-b-2">
@@ -143,12 +194,13 @@ export const TeacherPanelModal: React.FC<Props> = ({
             <div>
               <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
                 <span>Panell Docent de la Mestra</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 uppercase tracking-widest font-extrabold">
-                  Privat
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 uppercase tracking-widest font-extrabold flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  Emmagatzematge Permanent
                 </span>
               </h2>
               <p className="text-xs text-slate-400 font-medium">
-                Registre i seguiment del progrés de l'alumnat a la Cobla
+                Registre perpetu del progrés i avaluació de cada infant a la Cobla
               </p>
             </div>
           </div>
@@ -172,8 +224,8 @@ export const TeacherPanelModal: React.FC<Props> = ({
               <h3 className="text-2xl font-black text-slate-800">
                 Accés Exclusiu Docent
               </h3>
-              <p className="text-sm font-medium text-slate-600 mt-1">
-                Aquest apartat és exclusiu per a la mestra per consultar què ha fet cada alumne/a.
+              <p className="text-sm font-medium text-slate-600 mt-1 leading-relaxed">
+                Aquest apartat és exclusiu per a la mestra per consultar què ha fet cada infant, descarregar informes i gestionar les dades protegides.
               </p>
             </div>
 
@@ -201,39 +253,83 @@ export const TeacherPanelModal: React.FC<Props> = ({
 
               <button
                 type="submit"
-                className="w-full py-3.5 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md transition"
+                className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow transition"
               >
-                Accedir al Registre 🔓
+                Accedir al Registre
               </button>
             </form>
           </div>
         ) : (
           /* Authenticated Dashboard */
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="p-6 overflow-y-auto space-y-6 flex-1">
             
-            {/* Summary KPI Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 print:grid-cols-4">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <Users className="w-8 h-8 text-slate-700" />
+            {/* 💾 Permanent Storage Guarantee Banner */}
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-emerald-950 text-xs shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-200 text-emerald-800 flex items-center justify-center text-2xl shrink-0">
+                  💾
+                </div>
                 <div>
-                  <div className="text-2xl font-black text-slate-800">{students.length}</div>
-                  <div className="text-xs font-bold text-slate-500">Alumnes registrats</div>
+                  <span className="font-black text-emerald-900 text-sm block">
+                    Emmagatzematge Permanent i Perpetu Garantit
+                  </span>
+                  <span className="text-emerald-700 font-semibold leading-relaxed">
+                    Tots els registres es desen de forma indefinida al disc permanent del servidor i a la memòria local. <strong>Mai no caduquen al cap de 24 hores</strong> ni es perden en tancar la sessió.
+                  </span>
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleExportJSON}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95"
+                  title="Descarrega una còpia de seguretat en format JSON per guardar-la per sempre"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Còpia JSON</span>
+                </button>
+
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-2 rounded-xl bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs shadow-sm flex items-center gap-1.5 transition"
+                  title="Restaura una còpia de seguretat anterior"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Restaura</span>
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImportJSON}
+                  accept=".json"
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            {/* Quick KPI Stats Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-3">
-                <Award className="w-8 h-8 text-amber-600" />
+                <span className="text-2xl">👥</span>
                 <div>
-                  <div className="text-2xl font-black text-amber-800">{avgPunts} pts</div>
-                  <div className="text-xs font-bold text-amber-600">Mitjana de punts</div>
+                  <div className="text-2xl font-black text-amber-900">{students.length}</div>
+                  <div className="text-xs font-bold text-amber-700">Alumnes registrats</div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 flex items-center gap-3">
+                <span className="text-2xl">⭐</span>
+                <div>
+                  <div className="text-2xl font-black text-blue-900">{avgPunts} pts</div>
+                  <div className="text-xs font-bold text-blue-700">Mitjana de punts</div>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+                <span className="text-2xl">🧩</span>
                 <div>
-                  <div className="text-2xl font-black text-emerald-800">{totalPuzles} / {students.length}</div>
-                  <div className="text-xs font-bold text-emerald-600">Puzle Escenari fet</div>
+                  <div className="text-2xl font-black text-emerald-900">{totalPuzles} / {students.length}</div>
+                  <div className="text-xs font-bold text-emerald-700">Puzles escenari fets</div>
                 </div>
               </div>
 
@@ -241,7 +337,7 @@ export const TeacherPanelModal: React.FC<Props> = ({
                 <span className="text-2xl">📜</span>
                 <div>
                   <div className="text-2xl font-black text-purple-800">{totalDiplomes} / {students.length}</div>
-                  <div className="text-xs font-bold text-purple-600">Diplomes obtinguts</div>
+                  <div className="text-xs font-bold text-purple-600">Diplomes oficials</div>
                 </div>
               </div>
             </div>
@@ -266,7 +362,7 @@ export const TeacherPanelModal: React.FC<Props> = ({
                   title="Descarrega taula per obrir amb Excel o Google Sheets"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
-                  <span>Exporta CSV</span>
+                  <span>Exporta a Excel (CSV)</span>
                 </button>
 
                 <button
@@ -317,8 +413,8 @@ export const TeacherPanelModal: React.FC<Props> = ({
                       <th className="p-3">Alumne/a</th>
                       <th className="p-3 text-center">Punts & ⭐</th>
                       <th className="p-3 text-center">Puzle Escenari</th>
-                      <th className="p-3 text-center">Endevinalles</th>
-                      <th className="p-3 text-center">L’Intrús</th>
+                      <th className="p-3 text-center">Endevinalles & Intrús</th>
+                      <th className="p-3 text-center">So & Mites (V/F)</th>
                       <th className="p-3 text-center">Gran Concurs</th>
                       <th className="p-3 text-center">Diploma</th>
                       <th className="p-3 text-right">Última Activitat</th>
@@ -359,7 +455,7 @@ export const TeacherPanelModal: React.FC<Props> = ({
                               <td className="p-3 text-center">
                                 {puzleDone ? (
                                   <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] border border-emerald-300">
-                                    ✅ Completat
+                                    ✅ Fet
                                   </span>
                                 ) : (
                                   <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px]">
@@ -369,11 +465,13 @@ export const TeacherPanelModal: React.FC<Props> = ({
                               </td>
 
                               <td className="p-3 text-center font-bold">
-                                {s.activitat?.endevinallesEncertades || 0} encertades
+                                <div>{s.activitat?.endevinallesEncertades || 0} endev.</div>
+                                <div className="text-[10px] text-slate-400">{s.activitat?.intrusRondesEncertades || 0} intrusos</div>
                               </td>
 
                               <td className="p-3 text-center font-bold">
-                                {s.activitat?.intrusRondesEncertades || 0} rondes
+                                <div className="text-purple-700">👂 {s.activitat?.soMisteriosEncertats || 0} sons</div>
+                                <div className="text-emerald-700 text-[10px]">⚖️ {s.activitat?.mitesEncertats || 0} mites</div>
                               </td>
 
                               <td className="p-3 text-center">
@@ -459,7 +557,7 @@ export const TeacherPanelModal: React.FC<Props> = ({
             {/* Bottom Actions */}
             {students.length > 0 && (
               <div className="pt-2 flex justify-between items-center text-xs text-slate-500 print:hidden">
-                <span>Total: {students.length} alumnes enregistrats al sistema local</span>
+                <span>Total: {students.length} alumnes enregistrats permanentment</span>
                 <button
                   onClick={() => {
                     if (confirm('Atenció: Vols reiniciar tot el registre de tots els alumnes? Aquesta acció no es pot desfer.')) {

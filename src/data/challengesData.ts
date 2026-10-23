@@ -1,4 +1,4 @@
-import { Endevinalla, IntrusGameRound, QuizQuestion } from '../types/cobla';
+import { Endevinalla, IntrusGameRound, QuizQuestion, MysterySoundQuestion, MythQuestion } from '../types/cobla';
 
 export const ENDEVINALLES_DATA: Endevinalla[] = [
   {
@@ -6,12 +6,12 @@ export const ENDEVINALLES_DATA: Endevinalla[] = [
     instrumentId: 'tenora-1',
     pistes: [
       'Pista 1: El meu cos és de fusta de ginjoler i al final tinc una campana cònica de metall.',
-      'Pista 2: Em va inventar Andreu Toron a Perpinyà el 1849 i Pep Ventura em va portar a la cobla.',
+      'Pista 2: Em va inventar el lutier Andreu Toron a Perpinyà el 1849, i Pep Ventura em va donar el paper solista reina a la cobla.',
       'Pista 3: Tinc canya doble i tothom em reconeix com "L’instrument rei i solista de la cobla"!',
     ],
     opcions: ['Trompeta', 'Tenora', 'Flabiol', 'Contrabaix'],
     respostaCorrecta: 'Tenora',
-    explicacio: 'Molt bé! La Tenora va ser inventada per Andreu Toron el 1849 i Pep Ventura la va fer reina de la cobla!',
+    explicacio: 'Molt bé! La Tenora va ser inventada per Andreu Toron el 1849, i Pep Ventura la va fer reina indiscutible de la cobla!',
   },
   {
     id: 2,
@@ -139,18 +139,18 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
       'Cap instrument, tots toquen sols',
     ],
     respostaIndex: 0,
-    explicacio: 'Segons el dossier del Palau, 4 van per parelles (tible, tenora, trompeta, fiscorn) i 4 van sols (trombó, contrabaix, flabiol i tamborí)!',
+    explicacio: 'Segons Cobla 2.0 (Palau de la Música), 4 van per parelles (tible, tenora, trompeta, fiscorn) i 4 van sols (trombó, contrabaix, flabiol i tamborí)!',
   },
   {
     id: 2,
     pregunta: 'Qui va inventar la TENORA l’any 1849 a Perpinyà?',
     opcions: ['Andreu Toron', 'Pep Ventura', 'Eduard Toldrà', 'Enric Morera'],
     respostaIndex: 0,
-    explicacio: 'La va inventar Andreu Toron a Perpinyà el 1849 com a oboè tenor, i Pep Ventura la va perfeccionar i incorporar a la cobla!',
+    explicacio: 'Atenció per no confondre’s: la Tenora la va inventar el lutier Andreu Toron a Perpinyà el 1849! Pep Ventura NO la va inventar: va ser qui la va portar a la cobla, la va convertir en veu solista, va crear la cobla d’11 músics i va inventar la sardana llarga!',
   },
   {
     id: 3,
-    pregunta: 'Quina particularitat té el forat inferior del flabiol segons el dossier?',
+    pregunta: 'Quina particularitat té el forat inferior del flabiol segons Cobla 2.0?',
     opcions: [
       'Es tapa amb el colze esquerre',
       'Es tapa amb la part superior del dit petit pressionant cap amunt',
@@ -162,7 +162,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
   },
   {
     id: 4,
-    pregunta: 'Quantes tirades té una sardana completa segons el dossier "La Sardana"?',
+    pregunta: 'Quantes tirades té una sardana completa segons Som Sardana?',
     opcions: ['10 tirades (curts, llargs, contrapunts i toc final)', '4 tirades', '12 tirades', 'Només 2 tirades'],
     respostaIndex: 0,
     explicacio: 'Una sardana sencera té 10 tirades: dues de curts, dues de llargs, dues de curts, dues de llargs, dos contrapunts de llargs i el toc final!',
@@ -219,7 +219,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
   },
   {
     id: 10,
-    pregunta: 'Quins dos grans estils de ballar sardanes s’expliquen al dossier segons les comarques?',
+    pregunta: 'Quins dos grans estils de ballar sardanes s’expliquen a Som Sardana segons les comarques?',
     opcions: [
       'Estil empordanès i estil selvatà',
       'Estil clàssic i estil modernista',
@@ -230,3 +230,128 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     explicacio: 'Els dos estils més coneguts són l’empordanès (amb el dos parat) i el selvatà (amb els dos tresos)!',
   },
 ];
+
+export const MYSTERY_SOUND_QUESTIONS: MysterySoundQuestion[] = [
+  {
+    id: 1,
+    instrumentKey: 'flabiol',
+    titolPista: 'Refilat agut i refilat alegre',
+    pistaText: 'Escolta aquest refilat agut i espavilat. Qui toca l’Introit inicial i avisa a tothom que comença la dansa?',
+    opcions: ['Flabiol i Tamborí', 'Trompeta', 'Contrabaix', 'Trombó'],
+    respostaCorrecta: 'Flabiol i Tamborí',
+    explicacio: 'Exacte! És el flabiol amb el tamborí, tocat per un sol músic amb l’esquerra i la dreta!',
+  },
+  {
+    id: 2,
+    instrumentKey: 'tenora',
+    titolPista: 'La veu reina solista',
+    pistaText: 'Sent aquest timbre potent, càlid i profund de canya doble i campana cònica de metall.',
+    opcions: ['Trompeta', 'Tenora', 'Tible', 'Fiscorn'],
+    respostaCorrecta: 'Tenora',
+    explicacio: 'Molt bona oïda! És la Tenora, inventada per Andreu Toron i reina solista de la cobla!',
+  },
+  {
+    id: 3,
+    instrumentKey: 'contrabaix',
+    titolPista: 'Pols greu de cordes',
+    pistaText: 'Pessics greus marcant el pols del ball (la melodia del Gegant del Pi). De quin instrument és aquest so?',
+    opcions: ['Flabiol', 'Trompeta', 'Contrabaix', 'Tible'],
+    respostaCorrecta: 'Contrabaix',
+    explicacio: 'Genial! És el Contrabaix, l’únic instrument de corda de tota la cobla tocada amb pizzicato!',
+  },
+  {
+    id: 4,
+    instrumentKey: 'tible',
+    titolPista: 'Veu aguda i cantareta',
+    pistaText: 'Sent aquest so agut i penetrant de fusta de ginjoler cantant "Tres, sis, nou, tira de la cua de l’esquirol"!',
+    opcions: ['Trombo', 'Tible', 'Fiscorn', 'Contrabaix'],
+    respostaCorrecta: 'Tible',
+    explicacio: 'Fantàstic! És el Tible, més petit que la tenora i amb un so agudíssim i brillant!',
+  },
+  {
+    id: 5,
+    instrumentKey: 'fiscorn',
+    titolPista: 'Vellutat i vellutat de vent-metall',
+    pistaText: 'Escolta aquest so càlid i rodó de metall amb campana que mira endavant fent un contracant tendre.',
+    opcions: ['Flabiol', 'Fiscorn', 'Trompeta', 'Contrabaix'],
+    respostaCorrecta: 'Fiscorn',
+    explicacio: 'Molt bé! És el Fiscorn, la veu vellutada i expressiva de la fila del darrere!',
+  },
+  {
+    id: 6,
+    instrumentKey: 'trompeta',
+    titolPista: 'Fanfàrria brillant i alegre',
+    pistaText: 'Un atac clar, brillant i festiu de metall amb tres pistons que dóna l’empenta a la rotllana.',
+    opcions: ['Tenora', 'Flabiol', 'Trompeta', 'Tible'],
+    respostaCorrecta: 'Trompeta',
+    explicacio: 'Molt bona oïda! Són les Trompetes de la cobla, que toquen a la fila de darrere!',
+  },
+];
+
+export const MYTH_QUESTIONS: MythQuestion[] = [
+  {
+    id: 1,
+    afirmacio: 'Pep Ventura va inventar la Tenora al seu taller de Figueres el 1849.',
+    esVeritat: false,
+    explicacio: 'FALS! El gran error que tothom comet! La tenora la va inventar el lutier Andreu Toron a Perpinyà (1849). Pep Ventura la va descobrir, la va incorporar a la cobla, la va fer reina solista i va crear la cobla d’11 músics!',
+    dossierRef: 'extret de Cobla 2.0 • L’Invent de la Tenora',
+    icona: '👑',
+  },
+  {
+    id: 2,
+    afirmacio: 'A la cobla catalana hi ha 11 músics a l’escenari, però toquen exactament 12 instruments.',
+    esVeritat: true,
+    explicacio: 'VERITAT! El flabiolaire toca dos instruments a la vegada: el flabiol amb la mà esquerra i el tamborí amb la mà dreta picant amb una baqueta.',
+    dossierRef: 'extret de Cobla 2.0 • La Formació',
+    icona: '👥',
+  },
+  {
+    id: 3,
+    afirmacio: 'El forat inferior del flabiol es tapa amb el tou del polze com a la flauta dolça.',
+    esVeritat: false,
+    explicacio: 'FALS! Té una tècnica única al món: el forat de sota es tapa amb la part superior del dit petit pressionant cap amunt, just on s’ajunten les dues primeres falanges!',
+    dossierRef: 'extret de Cobla 2.0 • El Flabiol',
+    icona: '🪈',
+  },
+  {
+    id: 4,
+    afirmacio: 'Abans de Pep Ventura, les cobles tenien només 3 músics (cobla de tres quartans) i les sardanes eren curtes.',
+    esVeritat: true,
+    explicacio: 'VERITAT! Pep Ventura va modernitzar la cobla convertint-la en l’orquestra d’11 músics i va inventar la "sardana llarga", donant llibertat creativa als compassos!',
+    dossierRef: 'extret de Som Sardana • Història',
+    icona: '📜',
+  },
+  {
+    id: 5,
+    afirmacio: 'Juli Garreta, un dels millors compositors de sardanes (com "Juny"), era metge de professió a Barcelona.',
+    esVeritat: false,
+    explicacio: 'FALS! Juli Garreta era rellotger d’ofici a Sant Feliu de Guíxols! Va aprendre música de forma autodidacte i Pau Casals deia que era un geni absolut.',
+    dossierRef: 'extret de Som Sardana • Juli Garreta',
+    icona: '🕰️',
+  },
+  {
+    id: 6,
+    afirmacio: 'A la cançó "El Gegant del Pi", el gegant ballava "pel camí" perquè el lateral de la Rambla no estava pavimentat.',
+    esVeritat: true,
+    explicacio: 'VERITAT! La part central de la Rambla estava enrajolada (l’anomenaven "el terrat"), mentre que el lateral era de terra (anomenat "el camí")!',
+    dossierRef: 'extret de Cobla 2.0 • Cançons Populars',
+    icona: '🏰',
+  },
+  {
+    id: 7,
+    afirmacio: 'Una sardana sencera té només 2 tirades i no cal comptar els compassos.',
+    esVeritat: false,
+    explicacio: 'FALS! Té exactament 10 tirades estructurades amb matemàtica musical, i els balladors han de "comptar i repartir" per acabar clavat amb el cop sec final!',
+    dossierRef: 'extret de Som Sardana • Les 10 Tirades',
+    icona: '💃',
+  },
+  {
+    id: 8,
+    afirmacio: 'La Santa Espina (1907) d’Enric Morera i Àngel Guimerà va ser prohibida durant dues dictadures a Espanya.',
+    esVeritat: true,
+    explicacio: 'VERITAT! Va ser prohibida pel general Losada el 1924 sota la dictadura de Primo de Rivera, i novament durant el franquisme, perquè la gent la cantava com un himne de llibertat!',
+    dossierRef: 'extret de Cobla 2.0 • La Santa Espina',
+    icona: '🛡️',
+  },
+];
+
