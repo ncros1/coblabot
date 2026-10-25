@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Perfil i progrés d'un alumne/a a CoblaBot",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador únic de l'alumne"
+        },
+        "nom": {
+          "type": "string",
+          "description": "Nom de l'alumne/a"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Icona d'avatar triada per l'alumne"
+        },
+        "instrumentPreferit": {
+          "type": "string",
+          "description": "Instrument preferit de la cobla"
+        },
+        "punts": {
+          "type": "number",
+          "description": "Punts acumulats als jocs"
+        },
+        "estrelles": {
+          "type": "number",
+          "description": "Estrelles aconseguides"
+        },
+        "puntuacioQuizMax": {
+          "type": "number",
+          "description": "Puntuació màxima al Gran Concurs de la Cobla"
+        },
+        "diplomaObtingut": {
+          "type": "boolean",
+          "description": "Indica si ja ha obtingut el diploma oficial"
+        },
+        "dataRegistre": {
+          "type": "string",
+          "description": "Data en què es va registrar"
+        }
+      },
+      "required": ["id", "nom", "punts"]
+    },
+    "AppState": {
+      "title": "AppState",
+      "description": "Estat global sincronitzat de l'aplicació",
+      "type": "object",
+      "properties": {
+        "lastActiveStudentId": {
+          "type": "string",
+          "description": "ID de l'últim alumne seleccionat a l'aula"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Data i hora de l'última sincronització"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Llistat de tots els alumnes registrats a la classe"
+    },
+    "/meta/appState": {
+      "schema": "AppState",
+      "description": "Metadades globals de sincronització"
+    }
+  }
+}

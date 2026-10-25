@@ -15,6 +15,13 @@ import { ChallengeGames } from './components/ChallengeGames';
 import { StudentRegistrationModal } from './components/StudentRegistrationModal';
 import { TeacherPanelModal } from './components/TeacherPanelModal';
 import { DiplomaModal } from './components/DiplomaModal';
+import {
+  fetchStudentsFromFirestore,
+  subscribeToStudents,
+  saveStudentToFirestore,
+  setActiveStudentInFirestore,
+  deleteStudentFromFirestore,
+} from './services/firebase';
 
 const STUDENTS_LIST_KEY = 'coblabot_students_list';
 const ACTIVE_STUDENT_ID_KEY = 'coblabot_active_student_id';
@@ -41,12 +48,13 @@ export default function App() {
   const [isTeacherPanelOpen, setIsTeacherPanelOpen] = useState<boolean>(false);
   const [isDiplomaOpen, setIsDiplomaOpen] = useState<boolean>(false);
 
-  // Load students list on mount (both localStorage and persistent server)
+  // Load students list on mount (Firestore cloud sync + real-time subscription + local fallback)
   useEffect(() => {
     let isMounted = true;
+    let unsubscribeFirestore: (() => void) | null = null;
 
     const initStudents = async () => {
-      // 1. Check local storage first
+      // 1. Instant cache check from localStorage
       let localList: StudentProfile[] = [];
       const savedActiveId = localStorage.getItem(ACTIVE_STUDENT_ID_KEY);
 
@@ -66,58 +74,91 @@ export default function App() {
         }
       }
 
-      // 2. Fetch server persistent storage (which persists across all browsers, incognito, windows)
+      // 2. Fetch from Firebase Firestore (Shared across ALL browsers, accounts, devices)
       try {
-        const res = await fetch('/api/students');
-        if (res.ok && isMounted) {
-          const data = await res.json();
-          const serverStudents: StudentProfile[] = Array.isArray(data.students) ? data.students : [];
-          const serverActiveId: string | null = data.lastActiveStudentId || null;
+        const { students: firestoreStudents, lastActiveStudentId: firestoreActiveId } =
+          await fetchStudentsFromFirestore();
 
-          // Merge server students and local students
-          const map = new Map<string, StudentProfile>();
-          serverStudents.forEach((s) => map.set(s.id, s));
-          localList.forEach((s) => {
-            if (!map.has(s.id) || (s.punts > (map.get(s.id)?.punts || 0))) {
-              map.set(s.id, s);
+        let resolvedList: StudentProfile[] = firestoreStudents;
+
+        // If Firestore is empty on first boot, check if server has legacy records (like NEus) to migrate
+        if (firestoreStudents.length === 0) {
+          try {
+            const res = await fetch('/api/students');
+            if (res.ok) {
+              const data = await res.json();
+              const serverStudents: StudentProfile[] = Array.isArray(data.students) ? data.students : [];
+              if (serverStudents.length > 0) {
+                // Seed Firestore with existing records
+                for (const st of serverStudents) {
+                  await saveStudentToFirestore(st, false);
+                }
+                if (data.lastActiveStudentId) {
+                  await setActiveStudentInFirestore(data.lastActiveStudentId);
+                }
+                resolvedList = serverStudents;
+              }
             }
-          });
+          } catch (e) {
+            console.warn('Legacy server migration check:', e);
+          }
+        }
 
-          const merged = Array.from(map.values());
+        // Merge with any local list if needed
+        const map = new Map<string, StudentProfile>();
+        resolvedList.forEach((s) => map.set(s.id, s));
+        localList.forEach((s) => {
+          if (!map.has(s.id) || (s.punts > (map.get(s.id)?.punts || 0))) {
+            map.set(s.id, s);
+            saveStudentToFirestore(s, false);
+          }
+        });
 
+        const merged = Array.from(map.values());
+
+        if (isMounted) {
           if (merged.length > 0) {
             setStudents(merged);
             localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(merged));
 
-            // Determine active student:
-            // 1. local savedActiveId if valid in merged list
-            // 2. serverActiveId if valid in merged list
-            // 3. first student in the list
             let resolvedActiveId: string = merged[0].id;
             if (savedActiveId && merged.some((s) => s.id === savedActiveId)) {
               resolvedActiveId = savedActiveId;
-            } else if (serverActiveId && merged.some((s) => s.id === serverActiveId)) {
-              resolvedActiveId = serverActiveId;
+            } else if (firestoreActiveId && merged.some((s) => s.id === firestoreActiveId)) {
+              resolvedActiveId = firestoreActiveId;
             }
 
             setActiveStudentId(resolvedActiveId);
             localStorage.setItem(ACTIVE_STUDENT_ID_KEY, resolvedActiveId);
             setIsInitialRegistration(false);
             setIsRegistrationOpen(false);
-
-            // Sync merged state back to server if needed
-            if (merged.length !== serverStudents.length) {
-              syncStudentsToServer(merged, resolvedActiveId);
-            }
           } else {
-            // Truly 0 students anywhere (first time EVER running the app)
             setIsInitialRegistration(true);
             setIsRegistrationOpen(true);
           }
         }
+
+        // 3. Real-time Firestore subscription across all devices
+        unsubscribeFirestore = subscribeToStudents((liveStudents) => {
+          if (!isMounted) return;
+          if (liveStudents.length > 0) {
+            setStudents(liveStudents);
+            localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(liveStudents));
+            setActiveStudentId((prev) => {
+              if (prev && liveStudents.some((s) => s.id === prev)) {
+                return prev;
+              }
+              const newActive = liveStudents[0].id;
+              localStorage.setItem(ACTIVE_STUDENT_ID_KEY, newActive);
+              return newActive;
+            });
+            setIsInitialRegistration(false);
+            setIsRegistrationOpen(false);
+          }
+        });
       } catch (err) {
-        console.warn('Server storage sync check error:', err);
-        if (localList.length === 0) {
+        console.warn('Firestore initialization error:', err);
+        if (localList.length === 0 && isMounted) {
           setIsInitialRegistration(true);
           setIsRegistrationOpen(true);
         }
@@ -128,6 +169,9 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+      }
     };
   }, []);
 
@@ -135,8 +179,13 @@ export default function App() {
 
   // Persist updated student or add new student
   const handleSaveStudent = (updatedProfile: StudentProfile) => {
+    // 1. Save to Firestore (instant cloud sync across all devices & accounts)
+    saveStudentToFirestore(updatedProfile, true);
+
     setStudents((prevList) => {
-      const index = prevList.findIndex((s) => s.id === updatedProfile.id || s.nom.toLowerCase() === updatedProfile.nom.toLowerCase());
+      const index = prevList.findIndex(
+        (s) => s.id === updatedProfile.id || s.nom.toLowerCase() === updatedProfile.nom.toLowerCase()
+      );
       let nextList: StudentProfile[];
 
       if (index >= 0) {
@@ -166,13 +215,15 @@ export default function App() {
   const handleSelectExistingStudent = (selected: StudentProfile) => {
     setActiveStudentId(selected.id);
     localStorage.setItem(ACTIVE_STUDENT_ID_KEY, selected.id);
+    setActiveStudentInFirestore(selected.id);
+    syncStudentsToServer(students, selected.id);
     setIsRegistrationOpen(false);
     setIsInitialRegistration(false);
-    syncStudentsToServer(students, selected.id);
   };
 
   // Delete a student from the teacher panel
   const handleDeleteStudent = (studentId: string) => {
+    deleteStudentFromFirestore(studentId);
     const nextList = students.filter((s) => s.id !== studentId);
     setStudents(nextList);
     localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(nextList));
@@ -183,6 +234,7 @@ export default function App() {
       setActiveStudentId(nextActive);
       if (nextActive) {
         localStorage.setItem(ACTIVE_STUDENT_ID_KEY, nextActive);
+        setActiveStudentInFirestore(nextActive);
       } else {
         localStorage.removeItem(ACTIVE_STUDENT_ID_KEY);
       }
@@ -190,7 +242,10 @@ export default function App() {
   };
 
   // Reset all students from teacher panel
-  const handleResetAllStudents = () => {
+  const handleResetAllStudents = async () => {
+    for (const s of students) {
+      deleteStudentFromFirestore(s.id);
+    }
     setStudents([]);
     setActiveStudentId(null);
     localStorage.removeItem(STUDENTS_LIST_KEY);
@@ -212,6 +267,7 @@ export default function App() {
     const nowStr = new Date().toLocaleDateString('ca-ES') + ' ' + timeStr;
 
     setStudents((prevList) => {
+      let savedStudent: StudentProfile | null = null;
       const nextList = prevList.map((s) => {
         if (s.id !== currentStudent.id) return s;
 
@@ -232,8 +288,13 @@ export default function App() {
           },
         };
 
+        savedStudent = updatedStudent;
         return updatedStudent;
       });
+
+      if (savedStudent) {
+        saveStudentToFirestore(savedStudent, false);
+      }
 
       try {
         localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(nextList));

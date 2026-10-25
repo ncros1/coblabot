@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Prova de connexió
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Registre d'alumnat compartit en temps real per a tota la classe / escola
+    match /students/{studentId} {
+      allow read, write: if true;
+    }
+
+    // Metadades globals (últim alumne actiu, timestamps)
+    match /meta/{metaId} {
+      allow read, write: if true;
+    }
+  }
+}
