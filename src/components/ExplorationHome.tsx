@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudentProfile } from '../types/cobla';
 import { ActiveTab } from './Navbar';
-import { Music, MapPin, Headphones, Gamepad2, Sparkles, MessageSquare, Volume2, Trophy, BookOpen } from 'lucide-react';
+import { Music, MapPin, Headphones, Gamepad2, Sparkles, Volume2, Trophy, BookOpen } from 'lucide-react';
 import { coblaAudio } from '../utils/audioEngine';
 
 interface Props {
@@ -299,11 +299,11 @@ export const ExplorationHome: React.FC<Props> = ({
           </p>
         </div>
         <button
-          onClick={() => setActiveTab('chat')}
+          onClick={() => setActiveTab('curiosities')}
           className="px-5 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-sm shadow whitespace-nowrap flex items-center gap-2"
         >
-          <MessageSquare className="w-4 h-4" />
-          Pregunta a CoblaBot
+          <BookOpen className="w-4 h-4" />
+          Descobreix Peces & Secrets
         </button>
       </div>
 

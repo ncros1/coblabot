@@ -428,7 +428,7 @@ export const StageInteractive: React.FC<Props> = ({ student, onAddPoints }) => {
               youtubeId={rowVideoModal.id}
               title={rowVideoModal.title}
               durada={rowVideoModal.durada}
-              autoplay={true}
+              autoplay={false}
               showInfo={false}
             />
 

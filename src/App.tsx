@@ -12,7 +12,6 @@ import { StageInteractive } from './components/StageInteractive';
 import { SoundLab } from './components/SoundLab';
 import { DossierCuriosities } from './components/DossierCuriosities';
 import { ChallengeGames } from './components/ChallengeGames';
-import { CoblaBotChat } from './components/CoblaBotChat';
 import { StudentRegistrationModal } from './components/StudentRegistrationModal';
 import { TeacherPanelModal } from './components/TeacherPanelModal';
 import { DiplomaModal } from './components/DiplomaModal';
@@ -21,12 +20,12 @@ const STUDENTS_LIST_KEY = 'coblabot_students_list';
 const ACTIVE_STUDENT_ID_KEY = 'coblabot_active_student_id';
 
 // Permanent storage sync helper to save students to server disk
-const syncStudentsToServer = async (studentsList: StudentProfile[]) => {
+const syncStudentsToServer = async (studentsList: StudentProfile[], activeId?: string | null) => {
   try {
     await fetch('/api/students', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ students: studentsList }),
+      body: JSON.stringify({ students: studentsList, lastActiveStudentId: activeId }),
     });
   } catch (err) {
     console.warn('Failed to sync students to server permanent file:', err);
@@ -44,95 +43,92 @@ export default function App() {
 
   // Load students list on mount (both localStorage and persistent server)
   useEffect(() => {
-    try {
-      const savedList = localStorage.getItem(STUDENTS_LIST_KEY);
-      let parsedList: StudentProfile[] = savedList ? JSON.parse(savedList) : [];
+    let isMounted = true;
 
-      // Migration check from older single-student storage if present
-      if (parsedList.length === 0) {
-        const legacy = localStorage.getItem('coblabot_student_profile');
-        if (legacy) {
-          const legObj = JSON.parse(legacy);
-          const migratedStudent: StudentProfile = {
-            id: legObj.id || `student_${Date.now()}_${legObj.nom?.toLowerCase() || 'alumne'}`,
-            nom: legObj.nom || 'Alumne',
-            avatar: legObj.avatar || '🤖',
-            instrumentPreferit: legObj.instrumentPreferit || 'Tenora',
-            punts: legObj.punts || 50,
-            estrelles: legObj.estrelles || 1,
-            activitat: {
-              puzleEscenariCompletat: legObj.jocsCompletats?.puzle || false,
-              endevinallesEncertades: legObj.jocsCompletats?.endevina ? 5 : 0,
-              intrusRondesEncertades: legObj.jocsCompletats?.intrus ? 4 : 0,
-              soMisteriosEncertats: 0,
-              mitesEncertats: 0,
-              quizPuntuacio: legObj.puntuacioQuizMax || 0,
-              quizCompletat: legObj.jocsCompletats?.quiz || false,
-              diplomaObtingut: legObj.diplomaObtingut || false,
-              preguntesXatFetes: 0,
-              ultimaActivitat: new Date().toLocaleDateString('ca-ES'),
-              accionsRecents: [{
-                data: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                accio: 'Inici de sessió a la CoblaBot',
-              }],
-            },
-            puntuacioQuizMax: legObj.puntuacioQuizMax || 0,
-            diplomaObtingut: legObj.diplomaObtingut || false,
-            dataRegistre: legObj.dataRegistre || new Date().toLocaleDateString('ca-ES'),
-          };
-          parsedList = [migratedStudent];
-          localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(parsedList));
-        }
-      }
-
-      setStudents(parsedList);
-
+    const initStudents = async () => {
+      // 1. Check local storage first
+      let localList: StudentProfile[] = [];
       const savedActiveId = localStorage.getItem(ACTIVE_STUDENT_ID_KEY);
-      if (savedActiveId && parsedList.some((s) => s.id === savedActiveId)) {
-        setActiveStudentId(savedActiveId);
-      } else if (parsedList.length > 0) {
-        setActiveStudentId(parsedList[0].id);
-      } else {
-        // No students registered yet -> Open modal to enter name
-        setIsInitialRegistration(true);
-        setIsRegistrationOpen(true);
+
+      try {
+        const savedList = localStorage.getItem(STUDENTS_LIST_KEY);
+        localList = savedList ? JSON.parse(savedList) : [];
+      } catch (e) {
+        console.warn('Error reading local students:', e);
       }
 
-      // Permanent Server Persistence Sync
-      const fetchServerStudents = async () => {
-        try {
-          const res = await fetch('/api/students');
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data.students) && data.students.length > 0) {
-              setStudents((current) => {
-                const map = new Map<string, StudentProfile>();
-                data.students.forEach((s: StudentProfile) => map.set(s.id, s));
-                current.forEach((s) => {
-                  if (!map.has(s.id) || (s.punts > (map.get(s.id)?.punts || 0))) {
-                    map.set(s.id, s);
-                  }
-                });
-                const merged = Array.from(map.values());
-                localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(merged));
-                return merged;
-              });
-            } else if (parsedList.length > 0) {
-              // Populate server file with current local list
-              syncStudentsToServer(parsedList);
-            }
-          }
-        } catch (e) {
-          console.warn('Server storage sync check:', e);
+      if (localList.length > 0) {
+        setStudents(localList);
+        if (savedActiveId && localList.some((s) => s.id === savedActiveId)) {
+          setActiveStudentId(savedActiveId);
+        } else {
+          setActiveStudentId(localList[0].id);
         }
-      };
-      fetchServerStudents();
+      }
 
-    } catch (e) {
-      console.warn('Failed to load students:', e);
-      setIsInitialRegistration(true);
-      setIsRegistrationOpen(true);
-    }
+      // 2. Fetch server persistent storage (which persists across all browsers, incognito, windows)
+      try {
+        const res = await fetch('/api/students');
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          const serverStudents: StudentProfile[] = Array.isArray(data.students) ? data.students : [];
+          const serverActiveId: string | null = data.lastActiveStudentId || null;
+
+          // Merge server students and local students
+          const map = new Map<string, StudentProfile>();
+          serverStudents.forEach((s) => map.set(s.id, s));
+          localList.forEach((s) => {
+            if (!map.has(s.id) || (s.punts > (map.get(s.id)?.punts || 0))) {
+              map.set(s.id, s);
+            }
+          });
+
+          const merged = Array.from(map.values());
+
+          if (merged.length > 0) {
+            setStudents(merged);
+            localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(merged));
+
+            // Determine active student:
+            // 1. local savedActiveId if valid in merged list
+            // 2. serverActiveId if valid in merged list
+            // 3. first student in the list
+            let resolvedActiveId: string = merged[0].id;
+            if (savedActiveId && merged.some((s) => s.id === savedActiveId)) {
+              resolvedActiveId = savedActiveId;
+            } else if (serverActiveId && merged.some((s) => s.id === serverActiveId)) {
+              resolvedActiveId = serverActiveId;
+            }
+
+            setActiveStudentId(resolvedActiveId);
+            localStorage.setItem(ACTIVE_STUDENT_ID_KEY, resolvedActiveId);
+            setIsInitialRegistration(false);
+            setIsRegistrationOpen(false);
+
+            // Sync merged state back to server if needed
+            if (merged.length !== serverStudents.length) {
+              syncStudentsToServer(merged, resolvedActiveId);
+            }
+          } else {
+            // Truly 0 students anywhere (first time EVER running the app)
+            setIsInitialRegistration(true);
+            setIsRegistrationOpen(true);
+          }
+        }
+      } catch (err) {
+        console.warn('Server storage sync check error:', err);
+        if (localList.length === 0) {
+          setIsInitialRegistration(true);
+          setIsRegistrationOpen(true);
+        }
+      }
+    };
+
+    initStudents();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const currentStudent = students.find((s) => s.id === activeStudentId) || null;
@@ -153,7 +149,7 @@ export default function App() {
       try {
         localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(nextList));
         localStorage.setItem(ACTIVE_STUDENT_ID_KEY, updatedProfile.id);
-        syncStudentsToServer(nextList);
+        syncStudentsToServer(nextList, updatedProfile.id);
       } catch (e) {
         console.warn('Storage error:', e);
       }
@@ -172,6 +168,7 @@ export default function App() {
     localStorage.setItem(ACTIVE_STUDENT_ID_KEY, selected.id);
     setIsRegistrationOpen(false);
     setIsInitialRegistration(false);
+    syncStudentsToServer(students, selected.id);
   };
 
   // Delete a student from the teacher panel
@@ -307,19 +304,6 @@ export default function App() {
     }));
   };
 
-  // Record Chat Question
-  const handleAskQuestion = (question: string) => {
-    logStudentActivity(
-      (prev) => ({
-        activitat: {
-          ...prev.activitat,
-          preguntesXatFetes: (prev.activitat?.preguntesXatFetes || 0) + 1,
-        },
-      }),
-      `Ha preguntat a CoblaBot: "${question.slice(0, 35)}..."`
-    );
-  };
-
   // Complete Quiz & Award Diploma
   const handleCompleteQuiz = (score: number) => {
     const earnedPts = score * 15;
@@ -403,13 +387,6 @@ export default function App() {
             onOpenDiploma={() => setIsDiplomaOpen(true)}
           />
         )}
-
-        {activeTab === 'chat' && (
-          <CoblaBotChat
-            student={currentStudent}
-            onAskQuestion={handleAskQuestion}
-          />
-        )}
       </main>
 
       {/* Mobile Ergonomic Bottom Nav Dock (Phones) */}
@@ -421,7 +398,6 @@ export default function App() {
           { id: 'soundlab', label: 'Sons', icon: '🎧' },
           { id: 'curiosities', label: 'Peces', icon: '🎼' },
           { id: 'challenges', label: 'Reptes', icon: '🎮' },
-          { id: 'chat', label: 'CoblaBot', icon: '🤖' },
         ].map((item) => {
           const isActive = activeTab === item.id;
           return (

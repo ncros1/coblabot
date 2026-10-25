@@ -383,7 +383,7 @@ export const SoundLab: React.FC = () => {
               youtubeId={selectedYouTubeTrack.youtubeId}
               title={selectedYouTubeTrack.nom}
               durada={selectedYouTubeTrack.durada}
-              autoplay={true}
+              autoplay={false}
               showInfo={false}
             />
           </div>

@@ -33,7 +33,7 @@ export const StudentRegistrationModal: React.FC<Props> = ({
   isInitial = false,
 }) => {
   const [mode, setMode] = useState<'pick' | 'new'>(
-    allStudents.length > 0 && isInitial ? 'pick' : 'new'
+    allStudents.length > 0 ? 'pick' : 'new'
   );
   const [nom, setNom] = useState(currentProfile?.nom || '');
   const [avatar, setAvatar] = useState(currentProfile?.avatar || '🤖');
@@ -41,6 +41,23 @@ export const StudentRegistrationModal: React.FC<Props> = ({
     currentProfile?.instrumentPreferit || 'Tenora'
   );
   const [error, setError] = useState('');
+
+  // Automatically update mode and form values when modal opens or student list arrives
+  React.useEffect(() => {
+    if (isOpen) {
+      if (allStudents.length > 0) {
+        setMode('pick');
+      } else {
+        setMode('new');
+      }
+      if (currentProfile) {
+        setNom(currentProfile.nom || '');
+        setAvatar(currentProfile.avatar || '🤖');
+        setInstrumentPreferit(currentProfile.instrumentPreferit || 'Tenora');
+      }
+      setError('');
+    }
+  }, [isOpen, allStudents.length, currentProfile]);
 
   if (!isOpen) return null;
 

@@ -1,8 +1,8 @@
 import React from 'react';
 import { StudentProfile } from '../types/cobla';
-import { Compass, Music, MapPin, Headphones, Gamepad2, MessageSquare, Star, Edit3, BookOpen } from 'lucide-react';
+import { Compass, Music, MapPin, Headphones, Gamepad2, Star, Edit3, BookOpen } from 'lucide-react';
 
-export type ActiveTab = 'home' | 'instruments' | 'stage' | 'soundlab' | 'challenges' | 'curiosities' | 'chat';
+export type ActiveTab = 'home' | 'instruments' | 'stage' | 'soundlab' | 'challenges' | 'curiosities';
 
 interface Props {
   activeTab: ActiveTab;
@@ -26,7 +26,6 @@ export const Navbar: React.FC<Props> = ({
     { id: 'soundlab', label: 'Laboratori Sons', mobileLabel: 'Sons', icon: <Headphones className="w-4 h-4 shrink-0" /> },
     { id: 'curiosities', label: 'Peces & Secrets', mobileLabel: 'Peces', icon: <BookOpen className="w-4 h-4 shrink-0" />, badge: 'Cobla 2.0' },
     { id: 'challenges', label: 'Reptes & Jocs', mobileLabel: 'Reptes', icon: <Gamepad2 className="w-4 h-4 shrink-0" />, badge: 'Mini-jocs' },
-    { id: 'chat', label: 'Xat CoblaBot', mobileLabel: 'CoblaBot', icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
   ];
 
   return (

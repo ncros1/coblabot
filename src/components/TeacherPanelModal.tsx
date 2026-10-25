@@ -93,7 +93,6 @@ export const TeacherPanelModal: React.FC<Props> = ({
       'Mites Resolts',
       'Nota Gran Concurs (/10)',
       'Diploma Obtingut',
-      'Preguntes CoblaBot',
       'Data Registre',
       'Ultima Activitat',
     ];
@@ -109,7 +108,6 @@ export const TeacherPanelModal: React.FC<Props> = ({
       s.activitat?.mitesEncertats || 0,
       s.activitat?.quizPuntuacio || s.puntuacioQuizMax || 0,
       s.diplomaObtingut ? 'SI' : 'NO',
-      s.activitat?.preguntesXatFetes || 0,
       `"${s.dataRegistre}"`,
       `"${s.activitat?.ultimaActivitat || s.dataRegistre}"`,
     ]);

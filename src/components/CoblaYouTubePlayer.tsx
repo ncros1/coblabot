@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExternalLink, Play, Film, Sparkles, Volume2 } from 'lucide-react';
 
 interface Props {
@@ -18,10 +18,16 @@ export const CoblaYouTubePlayer: React.FC<Props> = ({
   compact = false,
   showInfo = true,
 }) => {
-  const [isLoaded, setIsLoaded] = useState<boolean>(autoplay);
+  // Always require manual play by default as requested by teacher/students
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  // Reset loaded state whenever youtubeId changes so new videos require manual play click
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [youtubeId]);
 
   const playlistParam = '&list=PLYrIVykkWT9JwPK8_NMxV6IdckZMvvDLo';
-  const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isLoaded ? 1 : 0}&rel=0&modestbranding=1${playlistParam}`;
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1${playlistParam}`;
   const directWatchUrl = `https://www.youtube.com/watch?v=${youtubeId}&list=PLYrIVykkWT9JwPK8_NMxV6IdckZMvvDLo`;
 
   return (
