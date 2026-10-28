@@ -145,15 +145,20 @@ export default function App() {
             setStudents(liveStudents);
             localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(liveStudents));
             setActiveStudentId((prev) => {
+              // Retain currently active student on this device if they still exist
               if (prev && liveStudents.some((s) => s.id === prev)) {
                 return prev;
+              }
+              const localSaved = localStorage.getItem(ACTIVE_STUDENT_ID_KEY);
+              if (localSaved && liveStudents.some((s) => s.id === localSaved)) {
+                return localSaved;
               }
               const newActive = liveStudents[0].id;
               localStorage.setItem(ACTIVE_STUDENT_ID_KEY, newActive);
               return newActive;
             });
             setIsInitialRegistration(false);
-            setIsRegistrationOpen(false);
+            // Notice: do NOT call setIsRegistrationOpen(false) here to avoid closing open modals while a user is typing
           }
         });
       } catch (err) {
@@ -183,9 +188,8 @@ export default function App() {
     saveStudentToFirestore(updatedProfile, true);
 
     setStudents((prevList) => {
-      const index = prevList.findIndex(
-        (s) => s.id === updatedProfile.id || s.nom.toLowerCase() === updatedProfile.nom.toLowerCase()
-      );
+      // Strictly match by ID only (never by name!) so new students never overwrite existing ones
+      const index = prevList.findIndex((s) => s.id === updatedProfile.id);
       let nextList: StudentProfile[];
 
       if (index >= 0) {
@@ -207,6 +211,7 @@ export default function App() {
     });
 
     setActiveStudentId(updatedProfile.id);
+    localStorage.setItem(ACTIVE_STUDENT_ID_KEY, updatedProfile.id);
     setIsRegistrationOpen(false);
     setIsInitialRegistration(false);
   };
