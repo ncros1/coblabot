@@ -89,7 +89,7 @@ export const ExplorationHome: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Student Progress Badge with Encerts and Errors */}
+      {/* Student Progress Badge (Encerts & Errors hidden from students; strictly teacher-only) */}
       {student && (
         <div className="bg-white rounded-2xl p-4 border-2 border-amber-200 shadow-sm flex flex-wrap items-center justify-between gap-3 animate-fade-in">
           <div className="flex items-center gap-3">
@@ -104,13 +104,13 @@ export const ExplorationHome: React.FC<Props> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-black text-xs flex items-center gap-1.5 shadow-sm">
-              <span>✅</span>
-              <span>{student.activitat?.totalEncerts || 0} Encerts</span>
+            <span className="px-3.5 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-black text-xs flex items-center gap-1.5 shadow-sm">
+              <span>🏆</span>
+              <span>{student.punts || 0} Punts</span>
             </span>
-            <span className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 font-black text-xs flex items-center gap-1.5 shadow-sm">
-              <span>❌</span>
-              <span>{student.activitat?.totalErrors || 0} Errors</span>
+            <span className="px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-black text-xs flex items-center gap-1.5 shadow-sm">
+              <span>⭐</span>
+              <span>Nivell {student.estrelles || 1}</span>
             </span>
           </div>
         </div>
@@ -150,6 +150,86 @@ export const ExplorationHome: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* 💃 Apartat Educatiu: Què és la Sardana? */}
+      <section className="bg-gradient-to-br from-amber-50 via-white to-orange-50/60 rounded-3xl p-6 sm:p-8 border-3 border-amber-200 shadow-md space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-200/80 text-amber-900 text-xs font-black uppercase tracking-wider">
+              <span>💃</span>
+              <span>Cultura & Tradició Catalana</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+              Què és la Sardana?
+            </h2>
+          </div>
+          <button
+            onClick={() => setActiveTab('curiosities')}
+            className="self-start sm:self-center px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-sm transition active:scale-95 flex items-center gap-1.5"
+          >
+            <span>Descobreix la Història de Pep Ventura</span>
+            <span>→</span>
+          </button>
+        </div>
+
+        <p className="text-slate-700 text-sm sm:text-base font-medium leading-relaxed">
+          La <strong>sardana</strong> és la dansa tradicional i nacional de Catalunya. És una dansa col·lectiva, oberta i plena de germanor que es balla en <strong>rotllana</strong> al so de la música en directe que toca la <strong>cobla</strong>.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: La Rotllana */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-2xl flex items-center justify-center">
+              ⭕
+            </div>
+            <h3 className="font-black text-base text-slate-800">1. La Rotllana Oberta</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Els balladors s'agafen de les mans mirant cap al centre. Tothom qui vulgui s'hi pot afegir respectant les parelles: és símbol d'unió, acollida i igualtat.
+            </p>
+          </div>
+
+          {/* Card 2: Passos Curts i Llargs */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-2xl flex items-center justify-center">
+              👣
+            </div>
+            <h3 className="font-black text-base text-slate-800">2. Curts i Llargs</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Té dos tipus de passos: els <strong>curts</strong> (amb els braços avall, tranquils) i els <strong>llargs</strong> (amb els braços amunt, més vius i moguts!).
+            </p>
+          </div>
+
+          {/* Card 3: Comptar i Repartir */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-yellow-100 text-2xl flex items-center justify-center">
+              🧮
+            </div>
+            <h3 className="font-black text-base text-slate-800">3. Comptar i Repartir</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Ballar sardanes té molta matemàtica! Cal comptar els compassos de la música i repartir els passos perquè tothom acabi exactament al mateix temps (el cop final).
+            </p>
+          </div>
+
+          {/* Card 4: La Cobla en Directe */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-2xl flex items-center justify-center">
+              🎷
+            </div>
+            <h3 className="font-black text-base text-slate-800">4. Música en Directe</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              A les places i aplecs, la sardana la toca sempre una <strong>cobla</strong> d'11 músics en directe, començant amb el solo del flabiol (l'introit) i el tamborí!
+            </p>
+          </div>
+        </div>
+
+        {/* Pep Ventura quote card */}
+        <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-300 flex items-start gap-3">
+          <span className="text-2xl mt-0.5">🎩</span>
+          <div className="text-xs sm:text-sm text-amber-950 font-semibold leading-relaxed">
+            <strong>Sabies que...?</strong> Abans del segle XIX la sardana era curta i senzilla. Va ser <strong>Pep Ventura</strong> (1817-1875) qui la va reformar a Figueres, creant la sardana llarga moderna i afegint la tenora per donar-li més força sonora!
+          </div>
+        </div>
+      </section>
 
       {/* 🧭 Les 4 Grans Seccions de CoblaBot */}
       <div>

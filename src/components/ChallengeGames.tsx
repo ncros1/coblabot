@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Sparkles,
   ChevronRight,
@@ -27,6 +27,15 @@ import {
   MYTH_QUESTIONS,
 } from '../data/challengesData';
 import { INSTRUMENTS_DATA } from '../data/instrumentsData';
+
+export function shuffleArray<T>(items: readonly T[] | T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 interface Props {
   student: StudentProfile | null;
@@ -372,6 +381,11 @@ export const ChallengeGames: React.FC<Props> = ({
 
   // --- 1. ENDEVINALLES HANDLERS ---
   const currentEndevina = ENDEVINALLES_DATA[endevinaIndex];
+  const shuffledEndevinaOptions = useMemo(() => {
+    if (!currentEndevina?.opcions) return [];
+    return shuffleArray(currentEndevina.opcions);
+  }, [endevinaIndex, currentEndevina?.id]);
+
   const targetEndevinaInst = INSTRUMENTS_DATA.find(
     (i) =>
       i.id === currentEndevina.instrumentId ||
@@ -452,6 +466,10 @@ export const ChallengeGames: React.FC<Props> = ({
 
   // --- 2. INTRÚS HANDLERS ---
   const currentIntrus = INTRUS_ROUNDS[intrusIndex];
+  const shuffledIntrusOptions = useMemo(() => {
+    if (!currentIntrus?.opcions) return [];
+    return shuffleArray(currentIntrus.opcions);
+  }, [intrusIndex, currentIntrus?.id]);
 
   const handleAnswerIntrus = (opcio: (typeof currentIntrus.opcions)[0]) => {
     if (isCurrentIntrusMemorized || intrusFeedback?.isCorrect) return;
@@ -516,6 +534,10 @@ export const ChallengeGames: React.FC<Props> = ({
 
   // --- 3. SO MISTERIÓS HANDLERS ---
   const currentMystery = MYSTERY_SOUND_QUESTIONS[soundMysteryIndex];
+  const shuffledMysteryOptions = useMemo(() => {
+    if (!currentMystery?.opcions) return [];
+    return shuffleArray(currentMystery.opcions);
+  }, [soundMysteryIndex, currentMystery?.id]);
 
   const playMysterySound = () => {
     setIsPlayingMystery(true);
@@ -586,6 +608,12 @@ export const ChallengeGames: React.FC<Props> = ({
 
   // --- 4. MITES HANDLERS (TRUE / FALSE) ---
   const currentMyth = MYTH_QUESTIONS[mythIndex];
+  const shuffledMythButtons = useMemo(() => {
+    return shuffleArray([
+      { value: true, label: 'És Veritat' },
+      { value: false, label: 'És Fals' },
+    ]);
+  }, [mythIndex, currentMyth?.id]);
 
   const handleAnswerMyth = (isTrueChosen: boolean) => {
     if (isCurrentMythMemorized || mythFeedback?.isCorrect) return;
@@ -649,12 +677,26 @@ export const ChallengeGames: React.FC<Props> = ({
 
   // --- 5. QUIZ HANDLERS ---
   const currentQuiz = QUIZ_QUESTIONS[quizIndex];
+  interface QuizOptionItem {
+    text: string;
+    originalIndex: number;
+    isCorrect: boolean;
+  }
+  const shuffledQuizOptions = useMemo<QuizOptionItem[]>(() => {
+    if (!currentQuiz?.opcions) return [];
+    const items: QuizOptionItem[] = currentQuiz.opcions.map((text, idx) => ({
+      text,
+      originalIndex: idx,
+      isCorrect: idx === currentQuiz.respostaIndex,
+    }));
+    return shuffleArray(items);
+  }, [quizIndex, currentQuiz?.id]);
 
-  const handleAnswerQuiz = (selectedIndex: number) => {
+  const handleAnswerQuiz = (opt: QuizOptionItem) => {
     if (isCurrentQuizMemorized || quizFeedback?.isCorrect) return;
 
-    setSelectedQuizAnswer(selectedIndex);
-    const isCorrect = selectedIndex === currentQuiz.respostaIndex;
+    setSelectedQuizAnswer(opt.originalIndex);
+    const isCorrect = opt.isCorrect;
 
     if (isCorrect) {
       coblaAudio.playSuccessSound();
@@ -685,7 +727,7 @@ export const ChallengeGames: React.FC<Props> = ({
       }
     } else {
       coblaAudio.playTryAgainSound();
-      setQuizIncorrectPicks((prev) => (prev.includes(selectedIndex) ? prev : [...prev, selectedIndex]));
+      setQuizIncorrectPicks((prev) => (prev.includes(opt.originalIndex) ? prev : [...prev, opt.originalIndex]));
       if (onRecordError) {
         onRecordError('quiz', `Ha fallat a la pregunta: "${currentQuiz.pregunta.slice(0, 30)}..."`);
       }
@@ -927,7 +969,7 @@ export const ChallengeGames: React.FC<Props> = ({
 
             {/* Answer Options: Once solved/memorized, permanently locked! If wrong, freely retry! */}
             <div className="grid grid-cols-2 gap-3 pt-2">
-              {currentEndevina.opcions.map((opcio, idx) => {
+              {shuffledEndevinaOptions.map((opcio, idx) => {
                 const isSelected = selectedEndevinaAnswer === opcio;
                 const isCorrect = opcio === currentEndevina.respostaCorrecta;
                 const isTriedAndWrong = endevinaIncorrectPicks.includes(opcio);
@@ -1096,7 +1138,7 @@ export const ChallengeGames: React.FC<Props> = ({
 
             {/* Options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {currentIntrus.opcions.map((opcio, idx) => {
+              {shuffledIntrusOptions.map((opcio, idx) => {
                 const isSelected = selectedIntrusOption === opcio.nom;
                 const isTriedAndWrong = intrusIncorrectPicks.includes(opcio.nom);
                 const isSolved = isCurrentIntrusMemorized || intrusFeedback?.isCorrect;
@@ -1288,7 +1330,7 @@ export const ChallengeGames: React.FC<Props> = ({
 
             {/* 4 Instrument Guess Options */}
             <div className="grid grid-cols-2 gap-3 pt-2">
-              {currentMystery.opcions.map((opcio, idx) => {
+              {shuffledMysteryOptions.map((opcio, idx) => {
                 const isSelected = selectedMysteryAnswer === opcio;
                 const isCorrect = opcio === currentMystery.respostaCorrecta;
                 const isTriedAndWrong = mysteryIncorrectPicks.includes(opcio);
@@ -1461,51 +1503,35 @@ export const ChallengeGames: React.FC<Props> = ({
               </p>
             </div>
 
-            {/* True / False Choice Buttons */}
+            {/* True / False Choice Buttons - Randomized side order per question */}
             <div className="grid grid-cols-2 gap-4">
-              <button
-                disabled={Boolean(isCurrentMythMemorized || mythFeedback?.isCorrect)}
-                onClick={() => handleAnswerMyth(true)}
-                className={`py-5 px-6 rounded-2xl font-black text-base md:text-lg border-3 transition-all flex items-center justify-center gap-2 min-h-[52px] ${
-                  (isCurrentMythMemorized || mythFeedback?.isCorrect) && currentMyth.esVeritat
-                    ? 'bg-emerald-500 border-emerald-600 text-white shadow-lg'
-                    : isCurrentMythMemorized && !currentMyth.esVeritat
-                    ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'
-                    : selectedMythAnswer === true && !currentMyth.esVeritat && mythFeedback && !mythFeedback.isCorrect
-                    ? 'bg-rose-50 border-rose-300 text-rose-800'
-                    : 'bg-white border-slate-300 hover:border-amber-400 hover:bg-amber-50/60 text-slate-800 shadow-sm active:scale-98'
-                }`}
-              >
-                <span>És Veritat</span>
-                {(isCurrentMythMemorized || (selectedMythAnswer === true && mythFeedback?.isCorrect)) && currentMyth.esVeritat && (
-                  <Check className="w-5 h-5 text-white" />
-                )}
-                {selectedMythAnswer === true && !currentMyth.esVeritat && mythFeedback && !mythFeedback.isCorrect && (
-                  <XCircle className="w-5 h-5 text-rose-600" />
-                )}
-              </button>
+              {shuffledMythButtons.map((btn) => {
+                const isSelected = selectedMythAnswer === btn.value;
+                const isCorrect = btn.value === currentMyth.esVeritat;
+                const isSolved = isCurrentMythMemorized || mythFeedback?.isCorrect;
+                const isWrongPick = isSelected && !isCorrect && mythFeedback && !mythFeedback.isCorrect;
 
-              <button
-                disabled={Boolean(isCurrentMythMemorized || mythFeedback?.isCorrect)}
-                onClick={() => handleAnswerMyth(false)}
-                className={`py-5 px-6 rounded-2xl font-black text-base md:text-lg border-3 transition-all flex items-center justify-center gap-2 min-h-[52px] ${
-                  (isCurrentMythMemorized || mythFeedback?.isCorrect) && !currentMyth.esVeritat
-                    ? 'bg-emerald-500 border-emerald-600 text-white shadow-lg'
-                    : isCurrentMythMemorized && currentMyth.esVeritat
-                    ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'
-                    : selectedMythAnswer === false && currentMyth.esVeritat && mythFeedback && !mythFeedback.isCorrect
-                    ? 'bg-rose-50 border-rose-300 text-rose-800'
-                    : 'bg-white border-slate-300 hover:border-amber-400 hover:bg-amber-50/60 text-slate-800 shadow-sm active:scale-98'
-                }`}
-              >
-                <span>És Fals</span>
-                {(isCurrentMythMemorized || (selectedMythAnswer === false && mythFeedback?.isCorrect)) && !currentMyth.esVeritat && (
-                  <Check className="w-5 h-5 text-white" />
-                )}
-                {selectedMythAnswer === false && currentMyth.esVeritat && mythFeedback && !mythFeedback.isCorrect && (
-                  <XCircle className="w-5 h-5 text-rose-600" />
-                )}
-              </button>
+                return (
+                  <button
+                    key={String(btn.value)}
+                    disabled={Boolean(isSolved)}
+                    onClick={() => handleAnswerMyth(btn.value)}
+                    className={`py-5 px-6 rounded-2xl font-black text-base md:text-lg border-3 transition-all flex items-center justify-center gap-2 min-h-[52px] ${
+                      isSolved && isCorrect
+                        ? 'bg-emerald-500 border-emerald-600 text-white shadow-lg'
+                        : isSolved && !isCorrect
+                        ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'
+                        : isWrongPick
+                        ? 'bg-rose-50 border-rose-300 text-rose-800'
+                        : 'bg-white border-slate-300 hover:border-amber-400 hover:bg-amber-50/60 text-slate-800 shadow-sm active:scale-98'
+                    }`}
+                  >
+                    <span>{btn.label}</span>
+                    {isSolved && isCorrect && <Check className="w-5 h-5 text-white" />}
+                    {isWrongPick && <XCircle className="w-5 h-5 text-rose-600" />}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Memorized Banner if already solved */}
@@ -1645,19 +1671,19 @@ export const ChallengeGames: React.FC<Props> = ({
                   {currentQuiz.pregunta}
                 </div>
 
-                {/* 4 Multiple choices */}
+                {/* 4 Multiple choices - Dynamically shuffled order */}
                 <div className="space-y-2.5">
-                  {currentQuiz.opcions.map((opcio, idx) => {
-                    const isSelected = selectedQuizAnswer === idx;
-                    const isCorrect = idx === currentQuiz.respostaIndex;
-                    const isTriedAndWrong = quizIncorrectPicks.includes(idx);
+                  {shuffledQuizOptions.map((opt, displayIdx) => {
+                    const isSelected = selectedQuizAnswer === opt.originalIndex;
+                    const isCorrect = opt.isCorrect;
+                    const isTriedAndWrong = quizIncorrectPicks.includes(opt.originalIndex);
                     const isSolved = isCurrentQuizMemorized || quizFeedback?.isCorrect;
 
                     return (
                       <button
-                        key={idx}
+                        key={displayIdx}
                         disabled={Boolean(isSolved)}
-                        onClick={() => handleAnswerQuiz(idx)}
+                        onClick={() => handleAnswerQuiz(opt)}
                         className={`w-full p-4 rounded-2xl font-bold text-sm md:text-base border-2 transition-all flex items-center justify-between text-left ${
                           isSolved && isCorrect
                             ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
@@ -1670,7 +1696,7 @@ export const ChallengeGames: React.FC<Props> = ({
                             : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50 active:scale-98'
                         }`}
                       >
-                        <span>{opcio}</span>
+                        <span>{opt.text}</span>
                         {isSolved && isCorrect && <CheckCircle2 className="w-5 h-5 text-white" />}
                         {isTriedAndWrong && !isSolved && <XCircle className="w-5 h-5 text-rose-500" />}
                       </button>

@@ -299,19 +299,19 @@ export const MYTH_QUESTIONS: MythQuestion[] = [
   },
   {
     id: 2,
-    afirmacio: 'A la cobla catalana hi ha 11 músics a l’escenari, però toquen exactament 12 instruments.',
-    esVeritat: true,
-    explicacio: 'VERITAT! El flabiolaire toca dos instruments a la vegada: el flabiol amb la mà esquerra i el tamborí amb la mà dreta picant amb una baqueta.',
-    dossierRef: 'extret de Cobla 2.0 • La Formació',
-    icona: '👥',
-  },
-  {
-    id: 3,
     afirmacio: 'El forat inferior del flabiol es tapa amb el tou del polze com a la flauta dolça.',
     esVeritat: false,
     explicacio: 'FALS! Té una tècnica única al món: el forat de sota es tapa amb la part superior del dit petit pressionant cap amunt, just on s’ajunten les dues primeres falanges!',
     dossierRef: 'extret de Cobla 2.0 • El Flabiol',
     icona: '🪈',
+  },
+  {
+    id: 3,
+    afirmacio: 'A la cobla catalana hi ha 11 músics a l’escenari, però toquen exactament 12 instruments.',
+    esVeritat: true,
+    explicacio: 'VERITAT! El flabiolaire toca dos instruments a la vegada: el flabiol amb la mà esquerra i el tamborí amb la mà dreta picant amb una baqueta.',
+    dossierRef: 'extret de Cobla 2.0 • La Formació',
+    icona: '👥',
   },
   {
     id: 4,
@@ -331,19 +331,19 @@ export const MYTH_QUESTIONS: MythQuestion[] = [
   },
   {
     id: 6,
-    afirmacio: 'A la cançó "El Gegant del Pi", el gegant ballava "pel camí" perquè el lateral de la Rambla no estava pavimentat.',
-    esVeritat: true,
-    explicacio: 'VERITAT! La part central de la Rambla estava enrajolada (l’anomenaven "el terrat"), mentre que el lateral era de terra (anomenat "el camí")!',
-    dossierRef: 'extret de Cobla 2.0 • Cançons Populars',
-    icona: '🏰',
-  },
-  {
-    id: 7,
     afirmacio: 'Una sardana sencera té només 2 tirades i no cal comptar els compassos.',
     esVeritat: false,
     explicacio: 'FALS! Té exactament 10 tirades estructurades amb matemàtica musical, i els balladors han de "comptar i repartir" per acabar clavat amb el cop sec final!',
     dossierRef: 'extret de Som Sardana • Les 10 Tirades',
     icona: '💃',
+  },
+  {
+    id: 7,
+    afirmacio: 'A la cançó "El Gegant del Pi", el gegant ballava "pel camí" perquè el lateral de la Rambla no estava pavimentat.',
+    esVeritat: true,
+    explicacio: 'VERITAT! La part central de la Rambla estava enrajolada (l’anomenaven "el terrat"), mentre que el lateral era de terra (anomenat "el camí")!',
+    dossierRef: 'extret de Cobla 2.0 • Cançons Populars',
+    icona: '🏰',
   },
   {
     id: 8,
@@ -352,6 +352,22 @@ export const MYTH_QUESTIONS: MythQuestion[] = [
     explicacio: 'VERITAT! Va ser prohibida pel general Losada el 1924 sota la dictadura de Primo de Rivera, i novament durant el franquisme, perquè la gent la cantava com un himne de llibertat!',
     dossierRef: 'extret de Cobla 2.0 • La Santa Espina',
     icona: '🛡️',
+  },
+  {
+    id: 9,
+    afirmacio: 'El contrabaix de la cobla tradicionalment solia portar només 3 cordes de tripa en lloc de les 4 habituals.',
+    esVeritat: true,
+    explicacio: 'VERITAT! A les cobles tradicionals s’anomenava "verra" i sovint tenia només 3 cordes gruixudes de tripa afinades en sol, re i la per marcar fort el ritme!',
+    dossierRef: 'extret de Cobla 2.0 • El Contrabaix',
+    icona: '🎻',
+  },
+  {
+    id: 10,
+    afirmacio: 'Els instruments de metall van a la 1a fila (davant) perquè tenen un so més suau que la fusta.',
+    esVeritat: false,
+    explicacio: 'FALS! Van a la 2a fila (darrere) perquè tenen molta potència de so! Si anessin davant, taparien completament la delicadesa dels instruments de fusta com el flabiol i els tibles.',
+    dossierRef: 'extret de Cobla 2.0 • Disposició a l’Escenari',
+    icona: '🎺',
   },
 ];
 
