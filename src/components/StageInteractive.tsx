@@ -9,9 +9,16 @@ import { CoblaYouTubePlayer } from './CoblaYouTubePlayer';
 interface Props {
   student: StudentProfile | null;
   onAddPoints: (points: number, actionDesc?: string, isPuzzleComplete?: boolean) => void;
+  onRecordError?: (gameType: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari', desc: string) => void;
+  onCompleteGame?: (gameKey: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari', completionMessage?: string) => void;
 }
 
-export const StageInteractive: React.FC<Props> = ({ student, onAddPoints }) => {
+export const StageInteractive: React.FC<Props> = ({
+  student,
+  onAddPoints,
+  onRecordError,
+  onCompleteGame,
+}) => {
   const [activeTab, setActiveTab] = useState<'explora' | 'puzle'>('explora');
   const [selectedSeat, setSelectedSeat] = useState<StageSeat | null>(STAGE_SEATS[0]);
 
@@ -71,6 +78,9 @@ export const StageInteractive: React.FC<Props> = ({ student, onAddPoints }) => {
       if (Object.keys(newPlaced).length === STAGE_SEATS.length) {
         setPuzzleCompleted(true);
         onAddPoints(100, "Ha completat amb èxit el Puzle de l'Escenari", true);
+        if (onCompleteGame) {
+          onCompleteGame('puzleEscenari', "Ha completat amb èxit el Puzle de l'Escenari!");
+        }
         confetti({
           particleCount: 80,
           spread: 70,
@@ -81,6 +91,9 @@ export const StageInteractive: React.FC<Props> = ({ student, onAddPoints }) => {
       // Wrong placement
       coblaAudio.playTryAgainSound();
       const targetInst = INSTRUMENTS_DATA.find((i) => i.id === selectedMusicianToPlace);
+      if (onRecordError) {
+        onRecordError('puzleEscenari', `Posició incorrecta per a ${targetInst?.nom || 'instrument'}`);
+      }
       let hint = 'Gairebé! Prova una altra posició...';
       if (targetInst?.familia === 'vent-fusta' && seat.fila === 2) {
         hint = `Gairebé! ${targetInst.nom} és de vent-fusta i va a la 1a Fila (davant). Prova de nou!`;

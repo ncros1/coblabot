@@ -89,6 +89,33 @@ export const ExplorationHome: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* Student Progress Badge with Encerts and Errors */}
+      {student && (
+        <div className="bg-white rounded-2xl p-4 border-2 border-amber-200 shadow-sm flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{student.avatar || '👤'}</span>
+            <div>
+              <div className="font-extrabold text-slate-800 text-sm">
+                Progrés de {student.nom}
+              </div>
+              <div className="text-xs text-slate-500 font-semibold">
+                Nivell ⭐ {student.estrelles} • {student.punts} punts acumulats
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-black text-xs flex items-center gap-1.5 shadow-sm">
+              <span>✅</span>
+              <span>{student.activitat?.totalEncerts || 0} Encerts</span>
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 font-black text-xs flex items-center gap-1.5 shadow-sm">
+              <span>❌</span>
+              <span>{student.activitat?.totalErrors || 0} Errors</span>
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Quick Summary Pill Box */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm flex items-center gap-3">

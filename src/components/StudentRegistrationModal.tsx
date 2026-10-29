@@ -125,10 +125,20 @@ export const StudentRegistrationModal: React.FC<Props> = ({
         estrelles: 1,
         activitat: {
           puzleEscenariCompletat: false,
+          totalEncerts: 0,
+          totalErrors: 0,
           endevinallesEncertades: 0,
+          endevinallesErrors: 0,
           intrusRondesEncertades: 0,
+          intrusErrors: 0,
+          soMisteriosEncertats: 0,
+          soMisteriosErrors: 0,
+          mitesEncertats: 0,
+          mitesErrors: 0,
           quizPuntuacio: 0,
+          quizErrors: 0,
           quizCompletat: false,
+          puzleEscenariErrors: 0,
           diplomaObtingut: false,
           preguntesXatFetes: 0,
           ultimaActivitat: `${nowDate} ${nowTime}`,
@@ -136,6 +146,7 @@ export const StudentRegistrationModal: React.FC<Props> = ({
             {
               data: nowTime,
               accio: 'Nou registre d’alumne a la CoblaBot',
+              tipus: 'info',
             },
           ],
         },
@@ -259,7 +270,11 @@ export const StudentRegistrationModal: React.FC<Props> = ({
                         <Check className="w-3.5 h-3.5 text-amber-600 inline" />
                       )}
                     </div>
-                    <div className="text-[10px] text-amber-700 font-bold">{s.punts} pts ⭐ {s.estrelles}</div>
+                    <div className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5 flex-wrap">
+                      <span>{s.punts} pts ⭐ {s.estrelles}</span>
+                      <span className="text-emerald-700">{s.activitat?.totalEncerts || 0} ✅</span>
+                      <span className="text-rose-600">{s.activitat?.totalErrors || 0} ❌</span>
+                    </div>
                   </div>
                 </button>
               ))}

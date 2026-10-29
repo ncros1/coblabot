@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StudentProfile } from './types/cobla';
+import { StudentProfile, StudentActivityLog } from './types/cobla';
 import { Navbar, ActiveTab } from './components/Navbar';
 import { ExplorationHome } from './components/ExplorationHome';
 import { InstrumentsGallery } from './components/InstrumentsGallery';
@@ -246,7 +246,7 @@ export default function App() {
     }
   };
 
-  // Reset all students from teacher panel
+  // Reset all students from teacher panel (full wipe)
   const handleResetAllStudents = async () => {
     for (const s of students) {
       deleteStudentFromFirestore(s.id);
@@ -261,10 +261,137 @@ export default function App() {
     setIsRegistrationOpen(true);
   };
 
+  // Reset points of a single student (KEEPS THE STUDENT PROFILE INTACT)
+  const handleResetStudentPoints = (studentId: string) => {
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nowStr = new Date().toLocaleDateString('ca-ES') + ' ' + timeStr;
+
+    setStudents((prevList) => {
+      let updatedStudent: StudentProfile | null = null;
+      const nextList = prevList.map((s) => {
+        if (s.id !== studentId) return s;
+
+        const prevActions = s.activitat?.accionsRecents || [];
+        const next: StudentProfile = {
+          ...s,
+          punts: 0,
+          estrelles: 1,
+          puntuacioQuizMax: 0,
+          diplomaObtingut: false,
+          activitat: {
+            ...s.activitat,
+            totalEncerts: 0,
+            totalErrors: 0,
+            endevinallesEncertades: 0,
+            endevinallesErrors: 0,
+            intrusRondesEncertades: 0,
+            intrusErrors: 0,
+            soMisteriosEncertats: 0,
+            soMisteriosErrors: 0,
+            mitesEncertats: 0,
+            mitesErrors: 0,
+            quizPuntuacio: 0,
+            quizErrors: 0,
+            quizCompletat: false,
+            puzleEscenariCompletat: false,
+            puzleEscenariErrors: 0,
+            diplomaObtingut: false,
+            jocsCompletatsTimestamps: {},
+            ultimaActivitat: nowStr,
+            accionsRecents: [
+              {
+                data: timeStr,
+                accio: 'Punts i marcadors posats a 0 per la mestra (alumne conservat)',
+                tipus: 'info',
+              },
+              ...prevActions.slice(0, 20),
+            ],
+          },
+        };
+
+        updatedStudent = next;
+        return next;
+      });
+
+      if (updatedStudent) {
+        saveStudentToFirestore(updatedStudent, false);
+      }
+
+      try {
+        localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(nextList));
+        syncStudentsToServer(nextList);
+      } catch (e) {
+        console.warn('Storage error:', e);
+      }
+
+      return nextList;
+    });
+  };
+
+  // Reset points for ALL students (KEEPS ALL STUDENTS INTACT)
+  const handleResetAllPoints = () => {
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nowStr = new Date().toLocaleDateString('ca-ES') + ' ' + timeStr;
+
+    setStudents((prevList) => {
+      const nextList = prevList.map((s) => {
+        const prevActions = s.activitat?.accionsRecents || [];
+        const updated: StudentProfile = {
+          ...s,
+          punts: 0,
+          estrelles: 1,
+          puntuacioQuizMax: 0,
+          diplomaObtingut: false,
+          activitat: {
+            ...s.activitat,
+            totalEncerts: 0,
+            totalErrors: 0,
+            endevinallesEncertades: 0,
+            endevinallesErrors: 0,
+            intrusRondesEncertades: 0,
+            intrusErrors: 0,
+            soMisteriosEncertats: 0,
+            soMisteriosErrors: 0,
+            mitesEncertats: 0,
+            mitesErrors: 0,
+            quizPuntuacio: 0,
+            quizErrors: 0,
+            quizCompletat: false,
+            puzleEscenariCompletat: false,
+            puzleEscenariErrors: 0,
+            diplomaObtingut: false,
+            jocsCompletatsTimestamps: {},
+            ultimaActivitat: nowStr,
+            accionsRecents: [
+              {
+                data: timeStr,
+                accio: 'Punts i marcadors posats a 0 per la mestra (alumnat conservat)',
+                tipus: 'info',
+              },
+              ...prevActions.slice(0, 15),
+            ],
+          },
+        };
+        saveStudentToFirestore(updated, false);
+        return updated;
+      });
+
+      try {
+        localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(nextList));
+        syncStudentsToServer(nextList);
+      } catch (e) {
+        console.warn('Storage error:', e);
+      }
+
+      return nextList;
+    });
+  };
+
   // Update student activity with history log
   const logStudentActivity = (
     updater: (prev: StudentProfile) => Partial<StudentProfile>,
-    actionDescription?: string
+    actionDescription?: string,
+    actionType: 'encert' | 'error' | 'info' = 'info'
   ) => {
     if (!currentStudent) return;
 
@@ -279,7 +406,7 @@ export default function App() {
         const partial = updater(s);
         const prevActions = s.activitat?.accionsRecents || [];
         const nextActions = actionDescription
-          ? [{ data: timeStr, accio: actionDescription }, ...prevActions.slice(0, 24)]
+          ? [{ data: timeStr, accio: actionDescription, tipus: actionType }, ...prevActions.slice(0, 39)]
           : prevActions;
 
         const updatedStudent: StudentProfile = {
@@ -317,64 +444,140 @@ export default function App() {
     logStudentActivity(
       (prev) => {
         const nextPoints = prev.punts + earnedPoints;
+        const now = Date.now();
+        const prevTimestamps = prev.activitat?.jocsCompletatsTimestamps || {};
         return {
           punts: nextPoints,
           estrelles: Math.floor(nextPoints / 50) + 1,
           activitat: {
             ...prev.activitat,
             puzleEscenariCompletat: isPuzzleComplete ? true : prev.activitat?.puzleEscenariCompletat,
+            ...(isPuzzleComplete
+              ? {
+                  totalEncerts: (prev.activitat?.totalEncerts || 0) + 1,
+                  jocsCompletatsTimestamps: {
+                    ...prevTimestamps,
+                    puzleEscenari: now,
+                  },
+                }
+              : {}),
           },
         };
       },
-      actionDesc || `Ha sumat +${earnedPoints} punts`
+      actionDesc || `Ha sumat +${earnedPoints} punts`,
+      'encert'
     );
   };
 
-  // Record Endevinalla
-  const handleRecordEndevinalla = () => {
-    logStudentActivity((prev) => ({
-      activitat: {
-        ...prev.activitat,
-        endevinallesEncertades: (prev.activitat?.endevinallesEncertades || 0) + 1,
+  // Record an Encert
+  const handleRecordEncert = (
+    gameType: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari',
+    desc: string,
+    pointsAwarded = 0
+  ) => {
+    logStudentActivity(
+      (prev) => {
+        const act = prev.activitat || ({} as any);
+        const nextPoints = prev.punts + pointsAwarded;
+        const updates: Partial<StudentActivityLog> = {
+          totalEncerts: (act.totalEncerts || 0) + 1,
+        };
+
+        if (gameType === 'endevinalles') {
+          updates.endevinallesEncertades = (act.endevinallesEncertades || 0) + 1;
+        } else if (gameType === 'intrus') {
+          updates.intrusRondesEncertades = (act.intrusRondesEncertades || 0) + 1;
+        } else if (gameType === 'soMisterios') {
+          updates.soMisteriosEncertats = (act.soMisteriosEncertats || 0) + 1;
+        } else if (gameType === 'mites') {
+          updates.mitesEncertats = (act.mitesEncertats || 0) + 1;
+        }
+
+        return {
+          punts: nextPoints,
+          estrelles: Math.floor(nextPoints / 50) + 1,
+          activitat: {
+            ...act,
+            ...updates,
+          },
+        };
       },
-    }));
+      `✅ Encert: ${desc}${pointsAwarded > 0 ? ` (+${pointsAwarded} pts)` : ''}`,
+      'encert'
+    );
   };
 
-  // Record Intrus
-  const handleRecordIntrus = () => {
-    logStudentActivity((prev) => ({
-      activitat: {
-        ...prev.activitat,
-        intrusRondesEncertades: (prev.activitat?.intrusRondesEncertades || 0) + 1,
+  // Record an Error / Wrong Attempt
+  const handleRecordError = (
+    gameType: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari',
+    desc: string
+  ) => {
+    logStudentActivity(
+      (prev) => {
+        const act = prev.activitat || ({} as any);
+        const updates: Partial<StudentActivityLog> = {
+          totalErrors: (act.totalErrors || 0) + 1,
+        };
+
+        if (gameType === 'endevinalles') {
+          updates.endevinallesErrors = (act.endevinallesErrors || 0) + 1;
+        } else if (gameType === 'intrus') {
+          updates.intrusErrors = (act.intrusErrors || 0) + 1;
+        } else if (gameType === 'soMisterios') {
+          updates.soMisteriosErrors = (act.soMisteriosErrors || 0) + 1;
+        } else if (gameType === 'mites') {
+          updates.mitesErrors = (act.mitesErrors || 0) + 1;
+        } else if (gameType === 'quiz') {
+          updates.quizErrors = (act.quizErrors || 0) + 1;
+        } else if (gameType === 'puzleEscenari') {
+          updates.puzleEscenariErrors = (act.puzleEscenariErrors || 0) + 1;
+        }
+
+        return {
+          activitat: {
+            ...act,
+            ...updates,
+          },
+        };
       },
-    }));
+      `❌ Error: ${desc}`,
+      'error'
+    );
   };
 
-  // Record Mystery Sound
-  const handleRecordMysterySound = () => {
-    logStudentActivity((prev) => ({
-      activitat: {
-        ...prev.activitat,
-        soMisteriosEncertats: (prev.activitat?.soMisteriosEncertats || 0) + 1,
+  // Complete a game and lock it for 24 hours
+  const handleCompleteGame = (
+    gameKey: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari',
+    completionMessage?: string
+  ) => {
+    const now = Date.now();
+    logStudentActivity(
+      (prev) => {
+        const act = prev.activitat || ({} as any);
+        const prevTimestamps = act.jocsCompletatsTimestamps || {};
+        return {
+          activitat: {
+            ...act,
+            jocsCompletatsTimestamps: {
+              ...prevTimestamps,
+              [gameKey]: now,
+            },
+          },
+        };
       },
-    }));
-  };
-
-  // Record Myth
-  const handleRecordMyth = () => {
-    logStudentActivity((prev) => ({
-      activitat: {
-        ...prev.activitat,
-        mitesEncertats: (prev.activitat?.mitesEncertats || 0) + 1,
-      },
-    }));
+      completionMessage || `🏆 Ha completat el joc de "${gameKey}"! Bloquejat durant 24 hores per consolidar els coneixements.`,
+      'info'
+    );
   };
 
   // Complete Quiz & Award Diploma
   const handleCompleteQuiz = (score: number) => {
     const earnedPts = score * 15;
+    const now = Date.now();
     logStudentActivity(
       (prev) => {
+        const act = prev.activitat || ({} as any);
+        const prevTimestamps = act.jocsCompletatsTimestamps || {};
         const nextPoints = prev.punts + earnedPts;
         return {
           punts: nextPoints,
@@ -382,14 +585,20 @@ export default function App() {
           puntuacioQuizMax: Math.max(prev.puntuacioQuizMax, score),
           diplomaObtingut: true,
           activitat: {
-            ...prev.activitat,
-            quizPuntuacio: Math.max(prev.activitat?.quizPuntuacio || 0, score),
+            ...act,
+            totalEncerts: (act.totalEncerts || 0) + score,
+            quizPuntuacio: Math.max(act.quizPuntuacio || 0, score),
             quizCompletat: true,
             diplomaObtingut: true,
+            jocsCompletatsTimestamps: {
+              ...prevTimestamps,
+              quiz: now,
+            },
           },
         };
       },
-      `Ha completat el Gran Concurs amb ${score}/10 encerts! 📜 Diploma concedit!`
+      `Ha completat el Gran Concurs amb ${score}/10 encerts! 📜 Diploma concedit! (Bloquejat 24h)`,
+      'encert'
     );
 
     setIsDiplomaOpen(true);
@@ -428,6 +637,8 @@ export default function App() {
           <StageInteractive
             student={currentStudent}
             onAddPoints={handleAddPoints}
+            onRecordError={handleRecordError}
+            onCompleteGame={handleCompleteGame}
           />
         )}
 
@@ -446,10 +657,9 @@ export default function App() {
             student={currentStudent}
             onAddPoints={handleAddPoints}
             onCompleteQuiz={handleCompleteQuiz}
-            onRecordEndevinalla={handleRecordEndevinalla}
-            onRecordIntrus={handleRecordIntrus}
-            onRecordMysterySound={handleRecordMysterySound}
-            onRecordMyth={handleRecordMyth}
+            onRecordEncert={handleRecordEncert}
+            onRecordError={handleRecordError}
+            onCompleteGame={handleCompleteGame}
             onOpenDiploma={() => setIsDiplomaOpen(true)}
           />
         )}
@@ -529,6 +739,8 @@ export default function App() {
         students={students}
         onDeleteStudent={handleDeleteStudent}
         onResetAllStudents={handleResetAllStudents}
+        onResetStudentPoints={handleResetStudentPoints}
+        onResetAllPoints={handleResetAllPoints}
       />
 
       {/* Official Diploma Modal */}

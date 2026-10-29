@@ -65,18 +65,36 @@ export interface StageSeat {
   familia: InstrumentFamily;
 }
 
+export interface CompletedGamesTimestamps {
+  endevinalles?: number;
+  intrus?: number;
+  soMisterios?: number;
+  mites?: number;
+  quiz?: number;
+  puzleEscenari?: number;
+}
+
 export interface StudentActivityLog {
   puzleEscenariCompletat: boolean;
+  totalEncerts?: number;
+  totalErrors?: number;
   endevinallesEncertades: number;
+  endevinallesErrors?: number;
   intrusRondesEncertades: number;
+  intrusErrors?: number;
   soMisteriosEncertats?: number;
+  soMisteriosErrors?: number;
   mitesEncertats?: number;
+  mitesErrors?: number;
   quizPuntuacio: number;
+  quizErrors?: number;
   quizCompletat: boolean;
+  puzleEscenariErrors?: number;
+  jocsCompletatsTimestamps?: CompletedGamesTimestamps;
   diplomaObtingut: boolean;
   preguntesXatFetes: number;
   ultimaActivitat: string;
-  accionsRecents: { data: string; accio: string }[];
+  accionsRecents: { data: string; accio: string; tipus?: 'encert' | 'error' | 'info' }[];
 }
 
 export interface StudentProfile {
