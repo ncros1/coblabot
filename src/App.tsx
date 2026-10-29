@@ -277,7 +277,8 @@ export default function App() {
           punts: 0,
           estrelles: 1,
           puntuacioQuizMax: 0,
-          diplomaObtingut: false,
+          jocsCompletatsTimestamps: {},
+          progresJocs: {},
           activitat: {
             ...s.activitat,
             totalEncerts: 0,
@@ -297,6 +298,7 @@ export default function App() {
             puzleEscenariErrors: 0,
             diplomaObtingut: false,
             jocsCompletatsTimestamps: {},
+            progresJocs: {},
             ultimaActivitat: nowStr,
             accionsRecents: [
               {
@@ -341,7 +343,8 @@ export default function App() {
           punts: 0,
           estrelles: 1,
           puntuacioQuizMax: 0,
-          diplomaObtingut: false,
+          jocsCompletatsTimestamps: {},
+          progresJocs: {},
           activitat: {
             ...s.activitat,
             totalEncerts: 0,
@@ -361,6 +364,7 @@ export default function App() {
             puzleEscenariErrors: 0,
             diplomaObtingut: false,
             jocsCompletatsTimestamps: {},
+            progresJocs: {},
             ultimaActivitat: nowStr,
             accionsRecents: [
               {
@@ -409,12 +413,35 @@ export default function App() {
           ? [{ data: timeStr, accio: actionDescription, tipus: actionType }, ...prevActions.slice(0, 39)]
           : prevActions;
 
+        // Preserve all 24h timestamps so nothing can ever erase a lockout
+        const mergedTimestamps = {
+          ...(s.jocsCompletatsTimestamps || {}),
+          ...(s.activitat?.jocsCompletatsTimestamps || {}),
+          ...(partial.jocsCompletatsTimestamps || {}),
+          ...(partial.activitat?.jocsCompletatsTimestamps || {}),
+        };
+
+        // Preserve all memorized question progress
+        const prevProgres = s.progresJocs || s.activitat?.progresJocs || {};
+        const partProgres = partial.progresJocs || partial.activitat?.progresJocs || {};
+        const mergedProgres = {
+          endevinalles: Array.from(new Set([...(prevProgres.endevinalles || []), ...(partProgres.endevinalles || [])])),
+          intrus: Array.from(new Set([...(prevProgres.intrus || []), ...(partProgres.intrus || [])])),
+          soMisterios: Array.from(new Set([...(prevProgres.soMisterios || []), ...(partProgres.soMisterios || [])])),
+          mites: Array.from(new Set([...(prevProgres.mites || []), ...(partProgres.mites || [])])),
+          quiz: Array.from(new Set([...(prevProgres.quiz || []), ...(partProgres.quiz || [])])),
+        };
+
         const updatedStudent: StudentProfile = {
           ...s,
           ...partial,
+          jocsCompletatsTimestamps: mergedTimestamps,
+          progresJocs: mergedProgres,
           activitat: {
             ...s.activitat,
             ...(partial.activitat || {}),
+            jocsCompletatsTimestamps: mergedTimestamps,
+            progresJocs: mergedProgres,
             ultimaActivitat: nowStr,
             accionsRecents: nextActions,
           },
@@ -445,20 +472,25 @@ export default function App() {
       (prev) => {
         const nextPoints = prev.punts + earnedPoints;
         const now = Date.now();
-        const prevTimestamps = prev.activitat?.jocsCompletatsTimestamps || {};
+        const prevTimestamps = {
+          ...(prev.jocsCompletatsTimestamps || {}),
+          ...(prev.activitat?.jocsCompletatsTimestamps || {}),
+        };
+        const updatedTimestamps = isPuzzleComplete
+          ? { ...prevTimestamps, puzleEscenari: now }
+          : prevTimestamps;
+
         return {
           punts: nextPoints,
           estrelles: Math.floor(nextPoints / 50) + 1,
+          jocsCompletatsTimestamps: updatedTimestamps,
           activitat: {
             ...prev.activitat,
             puzleEscenariCompletat: isPuzzleComplete ? true : prev.activitat?.puzleEscenariCompletat,
+            jocsCompletatsTimestamps: updatedTimestamps,
             ...(isPuzzleComplete
               ? {
                   totalEncerts: (prev.activitat?.totalEncerts || 0) + 1,
-                  jocsCompletatsTimestamps: {
-                    ...prevTimestamps,
-                    puzleEscenari: now,
-                  },
                 }
               : {}),
           },
@@ -545,23 +577,91 @@ export default function App() {
     );
   };
 
+  // Memorize a question solved correctly (so it can never be re-answered on reload or re-entry)
+  const handleSaveQuestionProgress = (
+    gameKey: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz',
+    questionIndex: number
+  ) => {
+    if (currentStudent) {
+      try {
+        const localKey = `coblabot_progress_${currentStudent.id}_${gameKey}`;
+        const existing: number[] = JSON.parse(localStorage.getItem(localKey) || '[]');
+        if (!existing.includes(questionIndex)) {
+          existing.push(questionIndex);
+          localStorage.setItem(localKey, JSON.stringify(existing));
+        }
+        if (currentStudent.nom) {
+          const nomKey = `coblabot_progress_${currentStudent.nom.toLowerCase().trim()}_${gameKey}`;
+          const existingNom: number[] = JSON.parse(localStorage.getItem(nomKey) || '[]');
+          if (!existingNom.includes(questionIndex)) {
+            existingNom.push(questionIndex);
+            localStorage.setItem(nomKey, JSON.stringify(existingNom));
+          }
+        }
+      } catch (e) {
+        console.warn('Local question progress save error:', e);
+      }
+    }
+
+    logStudentActivity(
+      (prev) => {
+        const prevProgres = prev.progresJocs || prev.activitat?.progresJocs || {};
+        const currentList = prevProgres[gameKey] || [];
+        const updatedList = currentList.includes(questionIndex)
+          ? currentList
+          : [...currentList, questionIndex];
+        const nextProgres = {
+          ...prevProgres,
+          [gameKey]: updatedList,
+        };
+
+        return {
+          progresJocs: nextProgres,
+          activitat: {
+            ...prev.activitat,
+            progresJocs: nextProgres,
+          },
+        };
+      },
+      `Pregunta encertada i memoritzada a ${gameKey} (preg. ${questionIndex + 1})`,
+      'encert'
+    );
+  };
+
   // Complete a game and lock it for 24 hours
   const handleCompleteGame = (
     gameKey: 'endevinalles' | 'intrus' | 'soMisterios' | 'mites' | 'quiz' | 'puzleEscenari',
     completionMessage?: string
   ) => {
     const now = Date.now();
+    if (currentStudent) {
+      try {
+        localStorage.setItem(`coblabot_24h_${currentStudent.id}_${gameKey}`, now.toString());
+        localStorage.setItem(
+          `coblabot_24h_${currentStudent.nom.toLowerCase().trim()}_${gameKey}`,
+          now.toString()
+        );
+      } catch (e) {
+        console.warn('Local cooldown save error:', e);
+      }
+    }
+
     logStudentActivity(
       (prev) => {
         const act = prev.activitat || ({} as any);
-        const prevTimestamps = act.jocsCompletatsTimestamps || {};
+        const prevTimestamps = {
+          ...(prev.jocsCompletatsTimestamps || {}),
+          ...(act.jocsCompletatsTimestamps || {}),
+        };
+        const updatedTimestamps = {
+          ...prevTimestamps,
+          [gameKey]: now,
+        };
         return {
+          jocsCompletatsTimestamps: updatedTimestamps,
           activitat: {
             ...act,
-            jocsCompletatsTimestamps: {
-              ...prevTimestamps,
-              [gameKey]: now,
-            },
+            jocsCompletatsTimestamps: updatedTimestamps,
           },
         };
       },
@@ -574,26 +674,43 @@ export default function App() {
   const handleCompleteQuiz = (score: number) => {
     const earnedPts = score * 15;
     const now = Date.now();
+    if (currentStudent) {
+      try {
+        localStorage.setItem(`coblabot_24h_${currentStudent.id}_quiz`, now.toString());
+        localStorage.setItem(
+          `coblabot_24h_${currentStudent.nom.toLowerCase().trim()}_quiz`,
+          now.toString()
+        );
+      } catch (e) {
+        console.warn('Local cooldown save error:', e);
+      }
+    }
+
     logStudentActivity(
       (prev) => {
         const act = prev.activitat || ({} as any);
-        const prevTimestamps = act.jocsCompletatsTimestamps || {};
+        const prevTimestamps = {
+          ...(prev.jocsCompletatsTimestamps || {}),
+          ...(act.jocsCompletatsTimestamps || {}),
+        };
+        const updatedTimestamps = {
+          ...prevTimestamps,
+          quiz: now,
+        };
         const nextPoints = prev.punts + earnedPts;
         return {
           punts: nextPoints,
           estrelles: Math.floor(nextPoints / 50) + 1,
           puntuacioQuizMax: Math.max(prev.puntuacioQuizMax, score),
           diplomaObtingut: true,
+          jocsCompletatsTimestamps: updatedTimestamps,
           activitat: {
             ...act,
             totalEncerts: (act.totalEncerts || 0) + score,
             quizPuntuacio: Math.max(act.quizPuntuacio || 0, score),
             quizCompletat: true,
             diplomaObtingut: true,
-            jocsCompletatsTimestamps: {
-              ...prevTimestamps,
-              quiz: now,
-            },
+            jocsCompletatsTimestamps: updatedTimestamps,
           },
         };
       },
@@ -660,7 +777,9 @@ export default function App() {
             onRecordEncert={handleRecordEncert}
             onRecordError={handleRecordError}
             onCompleteGame={handleCompleteGame}
+            onSaveQuestionProgress={handleSaveQuestionProgress}
             onOpenDiploma={() => setIsDiplomaOpen(true)}
+            onOpenStudentProfile={() => setIsRegistrationOpen(true)}
           />
         )}
       </main>

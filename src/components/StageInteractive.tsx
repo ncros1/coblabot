@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { STAGE_SEATS, INSTRUMENTS_DATA } from '../data/instrumentsData';
 import { StageSeat, StudentProfile } from '../types/cobla';
 import { coblaAudio } from '../utils/audioEngine';
-import { Sparkles, HelpCircle, CheckCircle2, RotateCcw, Volume2, Award, Film, X } from 'lucide-react';
+import { Sparkles, HelpCircle, CheckCircle2, RotateCcw, Volume2, Award, Film, X, Clock, Check, XCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CoblaYouTubePlayer } from './CoblaYouTubePlayer';
+import { isGameLocked24h, getRemainingTime24h, getStudentGameTimestamp } from './ChallengeGames';
 
 interface Props {
   student: StudentProfile | null;
@@ -21,6 +22,17 @@ export const StageInteractive: React.FC<Props> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'explora' | 'puzle'>('explora');
   const [selectedSeat, setSelectedSeat] = useState<StageSeat | null>(STAGE_SEATS[0]);
+
+  // Live timer tick for 24h countdown
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const puzzleTimestamp = getStudentGameTimestamp(student, 'puzleEscenari');
+  const isPuzzleLocked = isGameLocked24h(puzzleTimestamp);
+  const remainingTime = getRemainingTime24h(puzzleTimestamp);
 
   // Puzzle State
   const [placedMusicians, setPlacedMusicians] = useState<{ [seatId: string]: string }>({});
@@ -158,14 +170,25 @@ export const StageInteractive: React.FC<Props> = ({
             onClick={() => setActiveTab('puzle')}
             className={`px-4 py-2 rounded-xl text-sm font-black transition flex items-center gap-1.5 ${
               activeTab === 'puzle'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? isPuzzleLocked
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-purple-600 text-white shadow-sm'
+                : isPuzzleLocked
+                ? 'bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100'
                 : 'text-slate-700 hover:text-purple-800'
             }`}
           >
             <span>🧩 Puzle de l’Escenari</span>
-            <span className="text-[10px] bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded-full font-bold">
-              Joc
-            </span>
+            {isPuzzleLocked ? (
+              <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-black flex items-center gap-1">
+                <Clock className="w-3 h-3 inline" />
+                24h
+              </span>
+            ) : (
+              <span className="text-[10px] bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded-full font-bold">
+                Joc
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -459,6 +482,58 @@ export const StageInteractive: React.FC<Props> = ({
 
       {/* MODE 2: PUZZLE WAITING BENCH */}
       {activeTab === 'puzle' && (
+        isPuzzleLocked ? (
+          <div className="bg-gradient-to-br from-amber-50 via-white to-orange-50/70 rounded-3xl p-6 sm:p-10 border-4 border-amber-300 shadow-md text-center space-y-6 animate-fade-in">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-4xl shadow-inner">
+              ⏳
+            </div>
+            <div className="space-y-2 max-w-lg mx-auto">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-200/90 text-amber-950 text-xs font-black uppercase tracking-wider">
+                <span>🧩</span>
+                <span>Puzle de l’Escenari • Finalitzat per avui</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                Molt bona feina, {student?.nom || 'músic'}!
+              </h3>
+              <p className="text-slate-600 text-sm font-semibold leading-relaxed">
+                Has col·locat correctament tots els músics a l’escenari de la cobla! El puzle es desbloquejarà automàticament d’aquí a:
+              </p>
+            </div>
+
+            {/* Countdown Box */}
+            <div className="inline-flex items-center gap-3 sm:gap-4 bg-white px-6 sm:px-8 py-4 sm:py-5 rounded-2xl border-2 border-amber-300 shadow-sm">
+              <div className="flex flex-col items-center">
+                <span className="text-3xl sm:text-4xl font-black text-amber-800 font-mono">
+                  {String(remainingTime.hours).padStart(2, '0')}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Hores</span>
+              </div>
+              <span className="text-2xl font-black text-amber-400">:</span>
+              <div className="flex flex-col items-center">
+                <span className="text-3xl sm:text-4xl font-black text-amber-800 font-mono">
+                  {String(remainingTime.minutes).padStart(2, '0')}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Minuts</span>
+              </div>
+              <span className="text-2xl font-black text-amber-400">:</span>
+              <div className="flex flex-col items-center">
+                <span className="text-3xl sm:text-4xl font-black text-amber-800 font-mono">
+                  {String(remainingTime.seconds).padStart(2, '0')}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Segons</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => setActiveTab('explora')}
+                className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm shadow transition active:scale-95 flex items-center gap-2"
+              >
+                <span>🔍 Continua explorant l’Escenari</span>
+              </button>
+            </div>
+          </div>
+        ) : (
         <div className="bg-white rounded-3xl p-6 md:p-8 border-3 border-purple-200 shadow-md space-y-6">
           
           {/* Feedback banner */}
@@ -540,6 +615,7 @@ export const StageInteractive: React.FC<Props> = ({
           )}
 
         </div>
+        )
       )}
 
     </div>

@@ -142,7 +142,8 @@ export async function saveStudentToFirestore(
 ): Promise<void> {
   try {
     const studentDocRef = doc(db, STUDENTS_COLLECTION, student.id);
-    await setDoc(studentDocRef, student, { merge: true });
+    const cleanStudent = JSON.parse(JSON.stringify(student));
+    await setDoc(studentDocRef, cleanStudent, { merge: true });
 
     if (setActive) {
       const metaDocRef = doc(db, META_COLLECTION, APP_STATE_DOC);

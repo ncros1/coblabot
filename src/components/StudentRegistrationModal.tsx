@@ -271,9 +271,9 @@ export const StudentRegistrationModal: React.FC<Props> = ({
                       )}
                     </div>
                     <div className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5 flex-wrap">
-                      <span>{s.punts} pts ⭐ {s.estrelles}</span>
-                      <span className="text-emerald-700">{s.activitat?.totalEncerts || 0} ✅</span>
-                      <span className="text-rose-600">{s.activitat?.totalErrors || 0} ❌</span>
+                      <span>{s.punts} pts</span>
+                      <span>•</span>
+                      <span>⭐ Nivell {s.estrelles}</span>
                     </div>
                   </div>
                 </button>

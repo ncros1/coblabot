@@ -74,6 +74,14 @@ export interface CompletedGamesTimestamps {
   puzleEscenari?: number;
 }
 
+export interface SavedGameProgress {
+  endevinalles?: number[];
+  intrus?: number[];
+  soMisterios?: number[];
+  mites?: number[];
+  quiz?: number[];
+}
+
 export interface StudentActivityLog {
   puzleEscenariCompletat: boolean;
   totalEncerts?: number;
@@ -91,6 +99,7 @@ export interface StudentActivityLog {
   quizCompletat: boolean;
   puzleEscenariErrors?: number;
   jocsCompletatsTimestamps?: CompletedGamesTimestamps;
+  progresJocs?: SavedGameProgress;
   diplomaObtingut: boolean;
   preguntesXatFetes: number;
   ultimaActivitat: string;
@@ -105,6 +114,8 @@ export interface StudentProfile {
   punts: number;
   estrelles: number;
   activitat: StudentActivityLog;
+  jocsCompletatsTimestamps?: CompletedGamesTimestamps;
+  progresJocs?: SavedGameProgress;
   diplomaObtingut: boolean;
   puntuacioQuizMax: number;
   dataRegistre: string;
